@@ -127,9 +127,9 @@ reset.addEventListener('click', e => {
 
 // Window resize
 if (initTileLand) {
-	const throttledResetTileLand = initTileLand.debounce(initTileLand.resetBoard, 500);
+	const debouncedResetTileLand = initTileLand.debounce(initTileLand.resetBoard, 500);
 
 	window.addEventListener('resize', () => {
-		throttledResetTileLand();
+		debouncedResetTileLand();
 	});
 }

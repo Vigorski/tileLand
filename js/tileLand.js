@@ -26,6 +26,8 @@ export default class TileLand {
 		this.tileStrokeWidth = tileStrokeWidth ?? this.tileWidth / this.columns;
 		this.baseSVG = this.createBaseSVG();
 		this.allTiles = this.baseSVG.querySelectorAll('.cascade-waves__tile');
+		this.radiusNear = this.columns / 2;
+		this.radiusFar = this.columns * 2;
 
 		// wave options
 		this.waveIncrement = waveIncrement ?? 0.5;
@@ -92,7 +94,7 @@ export default class TileLand {
 		rect.setAttributeNS(null, 'x', -this.tileOffset);
 		rect.setAttributeNS(null, 'y', -this.tileOffset);
 		rect.setAttributeNS(null, 'stroke-width', this.tileStrokeWidth);
-
+		
 		rectGroup.appendChild(rect);
 
 		// update tileState with this tile
@@ -122,17 +124,13 @@ export default class TileLand {
 			requestAnimationFrame(() => increment());
 		});
 
-		// This was used to remove animated state of tiles
-		// rect.addEventListener('animationend', (e) => {
-		// 	e.target.classList.remove('active');
-		// });
-
 		return rect;
 	}
 
 	destroyBoard() {
-		while (this.container.firstChild) {
+		if (this.baseSVG) {
 			this.container.removeChild(this.baseSVG);
+			this.baseSVG = null;
 		}
 	}
 
@@ -148,16 +146,16 @@ export default class TileLand {
 
 		return function increment(center = o) {
 			waveRadius += _this.waveIncrement;
-			_this.loopThroughtTiles(center, waveRadius);
+			_this.loopThroughTiles(center, waveRadius);
 
 			// if r grows half more than current columns, stop wave iteration
-			if (waveRadius > _this.columns + _this.columns / 2) return;
+			if (waveRadius > _this.columns + _this.radiusNear) return;
 
 			requestAnimationFrame(() => increment());
 		};
 	}
 
-	loopThroughtTiles(o, r) {
+	loopThroughTiles(o, r) {
 		//////////////////////////////////////
 		// Select 8 tiles at a time at the outline of the circle
 		// Here we draw 8 tiles at a time, so we only need 45deg of the entire circle
@@ -185,9 +183,14 @@ export default class TileLand {
 	activateTile(y, x) {
 		if (!!this.tileState[y] && !!this.tileState[y][x]) {
 			this.tileState[y][x].element.classList.add('cascade-waves__tile--active');
-			// currently animation is set to 500ms so remove it manually here.
-			// Must remove class with async because intersecting waves cause a glitch and class remains
-			setTimeout(() => this.tileState[y][x].element.classList.remove('cascade-waves__tile--active'), 500);
+
+			// Remove animated state of tiles after wave
+			this.tileState[y][x].element.addEventListener('animationend', (e) => {
+				setTimeout(() => {
+					// Must remove class with async because intersecting waves cause a glitch and class remains
+					e.target.classList.remove('cascade-waves__tile--active');
+				}, 0)
+			});
 		}
 	}
 
@@ -196,83 +199,79 @@ export default class TileLand {
 	////////////////////////////////////////////
 
 	addHoverEvent() {
-		const regularTileDislocate = this.tileDislocate();
 
 		this.baseSVG.addEventListener('mousemove', (e) => {
 			if (!this.hoverEngaged) return;
-			// throttleTileDislocate(e, null);
-			regularTileDislocate(e, null);
+			this.tileDislocate(e, null);
 		});
 	}
 
-	tileDislocate() {
+	tileDislocate(e, fixed) {
 		const baseSVGRect = this.baseSVG.getBoundingClientRect();
 		const baseLeft = Math.floor(baseSVGRect.left);
 		const baseTop = Math.floor(baseSVGRect.top);
 		// the hover event works with the actual pixels on screen instead of the viewBox of the svg we defined
 		// so we must calculate the actual tile width here
-		const rebasedTileWidth = baseSVGRect.width / this.columns;
+		const pixelTileSize = baseSVGRect.width / this.columns;
+		let x, y = null;
+		
+		if (!!e) {
+			// divide by actual tile width (measured in px) in order to get the same coordinate system as baseSVG
+			// We need half of tileWidth here to recenter the cursor in the middle of the circle
+			const relativeX = (e.clientX - baseLeft) / pixelTileSize;
+			const relativeY = (e.clientY - baseTop) / pixelTileSize;
 
-		return (e, fixed) => {
-			const r = this.hoverRadius;
-			let x, y = null;
-			
-			if (!!e) {
-				// divide by actual tile width (measured in px) in order to get the same coordinate system as baseSVG
-				// tileOffset is the offset of the rect element, so we need it here to recenter the cursor in the middle of the circle
-				x = (e.clientX - baseLeft) / rebasedTileWidth - this.tileOffset;
-				y = (e.clientY - baseTop) / rebasedTileWidth - this.tileOffset;
-			} else {
-				x = y = fixed;
-			}
+			x = relativeX - (this.tileWidth / 2);
+			y = relativeY - (this.tileWidth / 2);
+		} else {
+			x = y = fixed;
+		}
 
-			const o = { x: x, y: y };
-			
-			for (let x = 0; x <= this.columns; x++) {
-				for (let y = 0; y <= this.columns; y++) {
-					const tilePosition = { x: x, y: y };
-					// check if tile exists, else skip to next tile
-					if (this.tileState[y] === undefined || this.tileState[y][x] === undefined) continue;
-					
-					const tileElement = this.tileState[y][x].element;
-					const tileParent = tileElement.parentElement;
-					
-					if (this.insideRadius(o, tilePosition, r)) {
-						// define the sides of the triangle made by mouse center and current tile
-						const a = x - o.x;
-						const b = y - o.y;
-						const c = Math.sqrt(a * a + b * b);
-						// define dislocation behavior.
-						const SCALE_RATE = this.roundTwoDecimal(this.exponentialDecay(this.scaleExpInitial, this.scaleExpDecay, r - c));
-						const PUSH_OFF_RATE = this.roundTwoDecimal(this.exponentialDecay(this.pushoffExpInitial, this.pushoffExpDecay, c - r));
-						const COLOR_RATE = this.roundTwoDecimal(this.exponentialDecay(this.colorInitial, this.colorDecay, c - r));
+		const o = { x: x, y: y };
+		
+		for (let x = 0; x <= this.columns; x++) {
+			for (let y = 0; y <= this.columns; y++) {
+				// check if tile exists, else skip to next tile
+				const tile = this.tileState[y]?.[x];
+				if (!tile) continue;
 
-						// define new color based on predefined color threshold
-						// the threshold is the difference between the purple color being used on wave tiles and the neutral gray color
-						const newColorFill = [
-							Math.round(this.colorGray[0] + this.colorThreshold[0] * COLOR_RATE),
-							Math.round(this.colorGray[1] - this.colorThreshold[1] * COLOR_RATE),
-							Math.round(this.colorGray[2] + this.colorThreshold[2] * COLOR_RATE),
-						];
+				const tilePosition = { x: x, y: y };
+				const tileElement = tile.element;
+				
+				if (this.insideRadius(o, tilePosition, this.hoverRadius)) {
+					// define the sides of the triangle made by mouse center and current tile
+					const a = x - o.x;
+					const b = y - o.y;
+					const c = Math.sqrt(a * a + b * b);
+					// define dislocation behavior.
+					const SCALE_RATE = this.roundTwoDecimal(this.exponentialDecay(this.scaleExpInitial, this.scaleExpDecay, this.hoverRadius - c));
+					const PUSH_OFF_RATE = this.roundTwoDecimal(this.exponentialDecay(this.pushoffExpInitial, this.pushoffExpDecay, c - this.hoverRadius));
+					const COLOR_RATE = this.roundTwoDecimal(this.exponentialDecay(this.colorInitial, this.colorDecay, c - this.hoverRadius));
 
-						this.tileState[y][x].hovered = true;
-						// by subtracting tile position from event center, we get the correct position for movement on the coordinate system -> a = x - o.x
-						tileElement.setAttribute('style', `transform: translate(${a * PUSH_OFF_RATE}px, ${b * PUSH_OFF_RATE}px) scale(${SCALE_RATE})`);
-						tileElement.setAttribute('fill', `rgb(${newColorFill[0]}, ${newColorFill[1]}, ${newColorFill[2]})`);
-					} else if (this.tileState[y][x].hovered) {
-						// back to original tile state
-						this.tileState[y][x].hovered = false;
-						tileElement.setAttribute('style', `transform: scale(1)`);
-						tileElement.setAttribute('fill', '#433e42');
-					}
+					// define new color based on predefined color threshold
+					// the threshold is the difference between the purple color being used on wave tiles and the neutral gray color
+					const newColorFill = [
+						Math.round(this.colorGray[0] + this.colorThreshold[0] * COLOR_RATE),
+						Math.round(this.colorGray[1] - this.colorThreshold[1] * COLOR_RATE),
+						Math.round(this.colorGray[2] + this.colorThreshold[2] * COLOR_RATE),
+					];
+
+					this.tileState[y][x].hovered = true;
+					// by subtracting tile position from event center, we get the correct position for movement on the coordinate system -> a = x - o.x
+					tileElement.style.transform = `translate(${a * PUSH_OFF_RATE}px, ${b * PUSH_OFF_RATE}px) scale(${SCALE_RATE})`;
+					tileElement.style.fill = `rgb(${newColorFill[0]}, ${newColorFill[1]}, ${newColorFill[2]})`;
+				} else if (this.tileState[y][x].hovered) {
+					// back to original tile state
+					this.tileState[y][x].hovered = false;
+					tileElement.style.transform = `scale(1)`;
+					tileElement.style.fill = '#433e42';
 				}
 			}
-		};
+		}
 	}
 
 	hoverUpdate(checked) {
-		const tileDis = this.tileDislocate();
-		checked ? tileDis(null, this.columns / 2) : tileDis(null, this.columns * 2);
+		checked ? this.tileDislocate(null, this.radiusNear) : this.tileDislocate(null, this.radiusFar);
 	}
 
 	////////////////////////////////////////////
@@ -285,8 +284,8 @@ export default class TileLand {
 		}
 
 		this.tileState[y][x] = {
-			x: x,
-			y: y,
+			x,
+			y,
 			element: rect,
 			hovered: false
 		};
@@ -312,21 +311,6 @@ export default class TileLand {
 				func.apply(context, args)
 			}, limit);
 		}
-	}
-
-	throttle(callback, limit) {
-		let wait = false;
-		const context = this;
-		return function (e) {
-			if (!wait) {
-				callback.call(context, e);
-				wait = true;
-
-				setTimeout(function () {
-					wait = false;
-				}, limit);
-			}
-		};
 	}
 
 	roundTwoDecimal(value) {
