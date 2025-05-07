@@ -36,7 +36,6 @@ export default class TileLandCanvas {
 		this.colorThreshold = colorThreshold;
 		this.colorInitial = colorInitial;
 		this.colorDecay = colorDecay;
-		this.boundHandleHover = this.handleHover.bind(this);
 
 		this.aspectRatio = 9 / 16;
 		this.columns = this.getColumns();
@@ -45,9 +44,13 @@ export default class TileLandCanvas {
 		this.radiusFar = this.columns * 2;
 
 		this.tileState = [];
+		this.mouseCoordinates = {
+			mouseX: 0,
+			mouseY: 0
+		};
 		this.createCanvas();
 		this.generateTiles();
-		this.hoverEngaged && this.addHoverEvent();
+		this.addHoverEvent();
 		this.draw();
 	}
 
@@ -68,8 +71,7 @@ export default class TileLandCanvas {
 		this.container.appendChild(this.canvas);
 
 		// this.canvas.addEventListener('click', (e) => {
-		// 	const [mouseX, mouseY] = this.getMouseCanvasCoordinates(e);
-		// 	const o = { x: Math.floor(mouseX), y: Math.floor(mouseY) };
+		// 	const o = { x: Math.floor(this.mouseCoordinates.mouseX), y: Math.floor(this.mouseCoordinates.mouseY) };
 		// 	this.incrementWaveRadius(o);
 		// });
 	}
@@ -94,25 +96,24 @@ export default class TileLandCanvas {
 		}
 	}
 
-	getMouseCanvasCoordinates(e) {
+	setMouseCanvasCoordinates(e) {
 		const rect = this.canvas.getBoundingClientRect();
 		const mouseX = (e.clientX - rect.left) / this.tilePixelSize;
 		const mouseY = (e.clientY - rect.top) / this.tilePixelSize;
 
-		return [mouseX, mouseY];
-	}
-
-	handleHover(e) {
-		const [mouseX, mouseY] = this.getMouseCanvasCoordinates(e);
-		this.tileDislocate({ x: mouseX, y: mouseY });
+		this.mouseCoordinates.mouseX = mouseX;
+		this.mouseCoordinates.mouseY = mouseY;
 	}
 
 	addHoverEvent() {
-		this.canvas.addEventListener('mousemove', this.boundHandleHover);
-	}
-
-	removeHoverEvent() {
-		this.canvas.removeEventListener('mousemove', this.boundHandleHover);
+		console.log(this.hoverEngaged, this.mouseCoordinates.mouseX);
+		this.canvas.addEventListener('mousemove', (e) => {
+			this.setMouseCanvasCoordinates(e);
+			
+			if (this.hoverEngaged) {
+				this.tileDislocate({ x: this.mouseCoordinates.mouseX, y: this.mouseCoordinates.mouseY });
+			}
+		});
 	}
 
 	tileDislocate(o) {
@@ -187,7 +188,7 @@ export default class TileLandCanvas {
 
 	// 	if (tile) {
 	// 		tile.targetScale = 0.2;
-	// 		tile.color = [205, 145, 255];
+	// 		tile.color = this.colorThreshold;
 	// 	}
 	// }
 

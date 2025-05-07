@@ -50,27 +50,24 @@ onRangeChange(tileReturnSpeedEle, initTileLand, 'returningTileLerpRate');
 engageHoverEle.addEventListener('change', e => {
 	const checked = e.target.checked;
 	initTileLand.hoverEngaged = checked;
-
-	if (checked) {
-		initTileLand.addHoverEvent();
-	} else {
-		initTileLand.removeHoverEvent();
+	
+	if (!checked) {
 		initTileLand.resetBoard();
 	}
 });
 
 // reset settings
 const reset = document.getElementById('reset');
-reset.addEventListener('click', e => {
+reset.addEventListener('click', () => {
 	// reset inputs
-	engageHoverEle.checked = true;
+	engageHoverEle.checked = false;
 	hoverRadiusEle.value = 3.6;
 	dislocateStartEle.value = 0.1;
 	dislocateDecayEle.value = 0.6;
 	tileSizeDecayEle.value = 0.4;
 
 	// reset tile board
-  initTileLand.hoverEngaged = true;
+  initTileLand.hoverEngaged = false;
 	initTileLand.hoverRadius = 3.6;
 	initTileLand.pushoffExpInitial = 0.1;
 	initTileLand.pushoffExpDecay = 0.6;
