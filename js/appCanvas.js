@@ -1,4 +1,30 @@
 import TileLand from "./tileLandCanvas.js";
+import { debounce } from "./helpers.js";
+import { tileSize } from "./constants.js";
+
+// Controls 
+const engageHoverEle = document.getElementById('engageHover');
+const hoverRadiusEle = document.getElementById('hoverRadius');
+const dislocateStartEle = document.getElementById('dislocateStart');
+const dislocateDecayEle = document.getElementById('dislocateDecay');
+const tileSizeDecayEle = document.getElementById('tileSizeDecay');
+const tilePushSpeedEle = document.getElementById('pushSpeed');
+const tileReturnSpeedEle = document.getElementById('returnSpeed');
+
+const options = {
+	tilePixelSize: tileSize.lg,
+	hoverEngaged: engageHoverEle.checked,
+	hoverRadius: 3.6,
+	pushoffExpInitial: 0.1,
+	pushoffExpDecay: 0.6,
+	scaleExpInitial: 1,
+	scaleExpDecay: 0.4,
+	activeTileLerpRate: .1,
+	returningTileLerpRate: .01
+};
+
+const boardWrapper = document.getElementById('boardWrapper');
+const initTileLand = new TileLand(boardWrapper, options);
 
 function onRangeChange(ele, obj, property) {
   ele.addEventListener('input', e => {
@@ -6,128 +32,56 @@ function onRangeChange(ele, obj, property) {
     const val = Number(e.target.value);
     obj[property] = val;
     indicator.innerText = val;
-		toggleHover(true);
+
+		if (obj instanceof TileLand) {
+			obj.tileDislocate({x: obj.columns / 2, y: obj.rows / 2});
+		}
   });
 }
 
-function toggleHover(state) {
-	engageHover.checked = state
-	initTileLand.hoverEngaged = state;
-	initTileLand.hoverUpdate(state);
-}
-
-function removeSuperWave() {
-	initTileLand.tileWidth = 1;
-	tileWidth.checked = false;
-}
-
-const options = {
-	columns: 38,
-	tileWidth: 1,
-	tileStrokeWidth: 0.05,
-	waveIncrement: 0.6,
-	// hover options
-  hoverEngaged: false,
-	hoverRadius: 3.6,
-	pushoffExpInitial: 0.1,
-	pushoffExpDecay: 0.6,
-	scaleExpInitial: 1,
-	scaleExpDecay: 0.4,
-};
-
-const boardWrapper = document.getElementById('boardWrapper');
-const initTileLand = new TileLand(boardWrapper, options);
-
-// Board settings
-const boardColumns = document.getElementById('boardColumns');
-boardColumns.addEventListener('change', e => {
-	const val = Number(e.target.value);
-	const indicator = e.target.nextElementSibling;
-
-	if(val > 150) {
-		indicator.innerHTML = 'Max value is 150</small>'
-	} else if(val < 5) {
-		indicator.innerHTML = 'Yeah... No. (Min value is 5)';
-	} else {
-		initTileLand.columns = val;
-		toggleHover(false);
-		initTileLand.resetBoard();
-	}
-})
-
-
 // Hover Events
-const engageHover = document.getElementById('engageHover');
-const hoverRadius = document.getElementById('hoverRadius');
-const dislocateStart = document.getElementById('dislocateStart');
-const dislocateDecay = document.getElementById('dislocateDecay');
-const tileSizeStart = document.getElementById('tileSizeStart');
-const tileSizeDecay = document.getElementById('tileSizeDecay');
+onRangeChange(hoverRadiusEle, initTileLand, 'hoverRadius');
+onRangeChange(dislocateStartEle, initTileLand, 'pushoffExpInitial');
+onRangeChange(dislocateDecayEle, initTileLand, 'pushoffExpDecay');
+onRangeChange(tileSizeDecayEle, initTileLand, 'scaleExpDecay');
+onRangeChange(tilePushSpeedEle, initTileLand, 'activeTileLerpRate');
+onRangeChange(tileReturnSpeedEle, initTileLand, 'returningTileLerpRate');
 
-onRangeChange(hoverRadius, initTileLand, 'hoverRadius');
-onRangeChange(dislocateStart, initTileLand, 'pushoffExpInitial');
-onRangeChange(dislocateDecay, initTileLand, 'pushoffExpDecay');
-onRangeChange(tileSizeStart, initTileLand, 'scaleExpInitial');
-onRangeChange(tileSizeDecay, initTileLand, 'scaleExpDecay');
-
-engageHover.addEventListener('change', e => {
+engageHoverEle.addEventListener('change', e => {
 	const checked = e.target.checked;
-  initTileLand.hoverEngaged = checked;
-	initTileLand.hoverUpdate(checked);
-	if (tileWidth.checked === true) {
-		removeSuperWave();
+	initTileLand.hoverEngaged = checked;
+
+	if (checked) {
+		initTileLand.addHoverEvent();
+	} else {
+		initTileLand.removeHoverEvent();
 		initTileLand.resetBoard();
 	}
-});
-
-// Wave settings
-const waveSpeed = document.getElementById('waveSpeed');
-const tileWidth = document.getElementById('tileWidth');
-
-onRangeChange(waveSpeed, initTileLand, 'waveIncrement');
-tileWidth.addEventListener('change', e => {
-	if(e.target.checked === false) {
-		initTileLand.tileWidth = 1;
-	} else {
-		initTileLand.tileWidth = 3;
-		toggleHover(false);
-	}
-	
-	initTileLand.resetBoard();
 });
 
 // reset settings
 const reset = document.getElementById('reset');
 reset.addEventListener('click', e => {
 	// reset inputs
-	boardColumns.value = 20;
-	engageHover.checked = false;
-	hoverRadius.value = 3.6;
-	dislocateStart.value = 0.1;
-	dislocateDecay.value = 0.6;
-	tileSizeStart.value = 1;
-	tileSizeDecay.value = 0.4;
-	waveSpeed.value = 0.6;
-	tileWidth.checked = false;
+	engageHoverEle.checked = true;
+	hoverRadiusEle.value = 3.6;
+	dislocateStartEle.value = 0.1;
+	dislocateDecayEle.value = 0.6;
+	tileSizeDecayEle.value = 0.4;
 
 	// reset tile board
-	initTileLand.columns = 60;
-  initTileLand.hoverEngaged = false;
+  initTileLand.hoverEngaged = true;
 	initTileLand.hoverRadius = 3.6;
 	initTileLand.pushoffExpInitial = 0.1;
 	initTileLand.pushoffExpDecay = 0.6;
 	initTileLand.scaleExpInitial = 1;
 	initTileLand.scaleExpDecay = 0.4;
-	initTileLand.waveIncrement = 0.6;
-	initTileLand.tileWidth = 1;
 	initTileLand.resetBoard();
-	removeSuperWave();
-	toggleHover(false);
 });
 
 // Window resize
 if (initTileLand) {
-	const debouncedResetTileLand = initTileLand.debounce(initTileLand.resetBoard, 500);
+	const debouncedResetTileLand = debounce.call(initTileLand, initTileLand.resetBoard, 250);
 
 	window.addEventListener('resize', () => {
 		debouncedResetTileLand();

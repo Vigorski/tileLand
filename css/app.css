@@ -119,29 +119,8 @@ img, svg {
   vertical-align: middle;
 }
 
-aside {
-  width: 42%;
-}
-
-.container {
-  width: 100%;
-  max-width: 1360px;
-  padding: 0 12px;
-  margin: 0 auto;
-}
-
-main {
-  flex: 1;
-}
-
-.controls {
-  padding: 2rem;
-  max-height: 48.125rem;
-  overflow-y: auto;
-}
-
 fieldset {
-  margin: 0 0 3.25rem;
+  margin: 0;
   padding: 0;
   border: 0;
 }
@@ -272,6 +251,11 @@ select:disabled {
   display: flex;
   flex-direction: column-reverse;
   margin-bottom: 0.25rem;
+}
+
+.form__field-group {
+	flex: 1;
+	min-width: 300px;
 }
 
 .form__field-error {
@@ -425,6 +409,7 @@ select:disabled {
 ================================== */
 /* RANGE INPUT */
 [type=range] {
+  appearance: none;
   -webkit-appearance: none;
   width: 100%;
   background: transparent;
@@ -537,6 +522,42 @@ select:disabled {
 ================================== */
 #boardWrapper {
   background-color: #303030;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 1360px;
+  padding: 0 12px;
+  margin: 0 auto;
+}
+
+.playground {
+  background-color: var(--color-background);
+  padding: 1rem;
+  box-shadow: 0 0 30px #e2d4ff;
+}
+
+.playground__wrapper {
+  height: 100%;
+}
+
+.controls__wrapper {
+	display: flex;
+	align-items: flex-start;
+	gap: 2.5rem;
+}
+
+fieldset.controls__wrapper {
+	flex: 1;
+	flex-wrap: wrap;
+}
+
+.controls {
+  padding: 1rem;
+	margin-bottom: 1rem;
 }
 
 .cascade-waves__tile {
@@ -587,17 +608,6 @@ select:disabled {
 @keyframes spin {
   0% { transform: rotateX(0); }
   100% { transform: rotateX(180deg); }
-}
-
-.playground {
-  display: flex;
-  background-color: var(--color-background);
-  padding: 16px;
-  box-shadow: 0 0 30px #e2d4ff;
-}
-
-.playground__wrapper {
-  height: 100%;
 }
 
 .radio-check-container {

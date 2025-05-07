@@ -199,7 +199,6 @@ export default class TileLand {
 	////////////////////////////////////////////
 
 	addHoverEvent() {
-
 		this.baseSVG.addEventListener('mousemove', (e) => {
 			if (!this.hoverEngaged) return;
 			this.tileDislocate(e, null);
