@@ -44,6 +44,7 @@ export default class TileLandCanvas {
 		this.radiusFar = this.columns * 2;
 
 		this.tileState = [];
+		this.activeWaves = [];
 		this.mouseCoordinates = {
 			mouseX: 0,
 			mouseY: 0
@@ -70,10 +71,10 @@ export default class TileLandCanvas {
 		this.canvas.height = this.rows * this.tilePixelSize;
 		this.container.appendChild(this.canvas);
 
-		// this.canvas.addEventListener('click', (e) => {
-		// 	const o = { x: Math.floor(this.mouseCoordinates.mouseX), y: Math.floor(this.mouseCoordinates.mouseY) };
-		// 	this.incrementWaveRadius(o);
-		// });
+		this.canvas.addEventListener('click', (e) => {
+			const o = { x: this.mouseCoordinates.mouseX, y: this.mouseCoordinates.mouseY };
+			this.incrementWaveRadius(o);
+		});
 	}
 
 	generateTiles() {
@@ -90,7 +91,9 @@ export default class TileLandCanvas {
 					currentOffsetY: 0,
 					targetScale: 1,
 					currentScale: 1,
-					color: [...this.colorGray]
+					color: [...this.colorGray],
+					waveActive: false,
+					waveTTL: 0
 				};
 			}
 		}
@@ -101,17 +104,19 @@ export default class TileLandCanvas {
 		const mouseX = (e.clientX - rect.left) / this.tilePixelSize;
 		const mouseY = (e.clientY - rect.top) / this.tilePixelSize;
 
-		this.mouseCoordinates.mouseX = mouseX;
-		this.mouseCoordinates.mouseY = mouseY;
+		this.mouseCoordinates.mouseX = Math.floor(mouseX);
+		this.mouseCoordinates.mouseY = Math.floor(mouseY);
 	}
 
 	addHoverEvent() {
-		console.log(this.hoverEngaged, this.mouseCoordinates.mouseX);
 		this.canvas.addEventListener('mousemove', (e) => {
 			this.setMouseCanvasCoordinates(e);
 			
 			if (this.hoverEngaged) {
-				this.tileDislocate({ x: this.mouseCoordinates.mouseX, y: this.mouseCoordinates.mouseY });
+				this.tileDislocate({ 
+					x: this.mouseCoordinates.mouseX,
+					y: this.mouseCoordinates.mouseY
+				});
 			}
 		});
 	}
@@ -149,48 +154,54 @@ export default class TileLandCanvas {
 		}
 	}
 
-	// incrementWaveRadius(origin) {
-	// 	let waveRadius = 0;
-	// 	waveRadius += this.waveIncrement;
-	// 	this.loopThroughTiles(origin, waveRadius);
-	// 	// if (waveRadius <= this.columns + this.radiusNear) {}
-	// }
+	incrementWaveRadius(origin) {
+		this.activeWaves.push({
+			origin,
+			radius: 0
+		});
+		// let waveRadius = 0;
+		// waveRadius += this.waveIncrement;
+		// this.loopThroughTiles(origin, waveRadius);
+		// if (waveRadius <= this.columns + this.radiusNear) {}
+	}
 
-	// loopThroughTiles(o, r) {
-	// 	//////////////////////////////////////
-	// 	// Select 8 tiles at a time at the outline of the circle
-	// 	// Here we draw 8 tiles at a time, so we only need 45deg of the entire circle
-	// 	// maxIteration = x = y of a 45deg triangle or its the number of times we need to redraw x8 tiles to make a full circle
-	// 	//////////////////////////////////////
+	loopThroughTiles(o, r) {
+		//////////////////////////////////////
+		// Select 8 tiles at a time at the outline of the circle
+		// Here we draw 8 tiles at a time, so we only need 45deg of the entire circle
+		// maxIteration = x = y of a 45deg triangle or its the number of times we need to redraw x8 tiles to make a full circle
+		//////////////////////////////////////
 
-	// 	const cos45 = Math.cos(Math.PI / 4);
-	// 	const maxIterations = Math.floor(r * cos45);
+		const cos45 = Math.cos(Math.PI / 4);
+		const maxIterations = Math.floor(r * cos45);
 
-	// 	for (let y = 0; y <= maxIterations; y++) {
-	// 		const x = Math.floor(Math.sqrt(r * r - y * y));
-	// 		// draw 4 on the horizontal axis
-	// 		this.activateTile(y, -x, o);
-	// 		this.activateTile(y, x, o);
-	// 		this.activateTile(-y, -x, o);
-	// 		this.activateTile(-y, x, o);
-	// 		// draw 4 on the vertical axis
-	// 		this.activateTile(x, -y, o);
-	// 		this.activateTile(x, y, o);
-	// 		this.activateTile(-x, -y, o);
-	// 		this.activateTile(-x, y, o);
-	// 	}
-	// }
+		for (let y = 0; y <= maxIterations; y++) {
+			const x = Math.floor(Math.sqrt(r * r - y * y));
+			// draw 4 on the horizontal axis
+			this.activateTile(y, -x, o);
+			this.activateTile(y, x, o);
+			this.activateTile(-y, -x, o);
+			this.activateTile(-y, x, o);
+			// draw 4 on the vertical axis
+			this.activateTile(x, -y, o);
+			this.activateTile(x, y, o);
+			this.activateTile(-x, -y, o);
+			this.activateTile(-x, y, o);
+		}
+	}
 
-	// activateTile(dy, dx, o) {
-	// 	const tx = o.x + dx;
-	// 	const ty = o.y + dy;
-	// 	const tile = this.tileState[ty] && this.tileState[ty][tx];
+	activateTile(dy, dx, o) {
+		const tx = o.x + dx;
+		const ty = o.y + dy;
+		const tile = this.tileState[ty] && this.tileState[ty][tx];
 
-	// 	if (tile) {
-	// 		tile.targetScale = 0.2;
-	// 		tile.color = this.colorThreshold;
-	// 	}
-	// }
+		if (tile) {
+			tile.targetScale = 0;
+			tile.color = this.colorThreshold;
+			tile.waveActive = true;
+			tile.waveTTL = 8;
+		}
+	}
 
 	resetBoard() {
     this.tileState = [];
@@ -204,6 +215,13 @@ export default class TileLandCanvas {
 
 	draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		this.activeWaves.forEach(wave => {
+			wave.radius += this.waveIncrement;
+			this.loopThroughTiles(wave.origin, wave.radius);
+		});
+
+		this.activeWaves = this.activeWaves.filter(wave => wave.radius < (this.columns + this.radiusNear));
 
     // Flatten tile grid into array
     const allTiles = [];
@@ -224,6 +242,16 @@ export default class TileLandCanvas {
         // Interpolation
         const isReturning = tile.targetOffsetX === 0 && tile.targetOffsetY === 0;
         const lerpRate = isReturning ? this.returningTileLerpRate : this.activeTileLerpRate;
+
+				if (tile.waveActive) {
+					tile.waveTTL -= 1;
+				
+					if (tile.waveTTL <= 0) {
+						tile.waveActive = false;
+						tile.targetScale = 1;
+						tile.color = [...this.colorGray];
+					}
+				}
 
         tile.currentOffsetX += (tile.targetOffsetX - tile.currentOffsetX) * lerpRate;
         tile.currentOffsetY += (tile.targetOffsetY - tile.currentOffsetY) * lerpRate;
