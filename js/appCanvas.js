@@ -1,86 +1,78 @@
 import TileLand from "./tileLandCanvas.js";
 import { debounce } from "./helpers.js";
-import { tileSize } from "./constants.js";
+import {
+  HOVER_RADIUS,
+  SCALE_EXP_DECAY,
+  PUSH_OFF_EXP_DECAY,
+  PUSH_OFF_EXP_INITIAL,
+  HOVER_ENGAGED,
+} from "./constants.js";
 
-// Controls 
-const engageHoverEle = document.getElementById('engageHover');
-const hoverRadiusEle = document.getElementById('hoverRadius');
-const dislocateStartEle = document.getElementById('dislocateStart');
-const dislocateDecayEle = document.getElementById('dislocateDecay');
-const tileSizeDecayEle = document.getElementById('tileSizeDecay');
-const tilePushSpeedEle = document.getElementById('pushSpeed');
-const tileReturnSpeedEle = document.getElementById('returnSpeed');
+// Controls
+const engageHoverEle = document.getElementById("engageHover");
+const hoverRadiusEle = document.getElementById("hoverRadius");
+const dislocateStartEle = document.getElementById("dislocateStart");
+const dislocateDecayEle = document.getElementById("dislocateDecay");
+const tileSizeDecayEle = document.getElementById("tileSizeDecay");
 
 const options = {
-	tilePixelSize: tileSize.lg,
-	hoverEngaged: engageHoverEle.checked,
-	hoverRadius: 3.6,
-	pushoffExpInitial: 0.1,
-	pushoffExpDecay: 0.6,
-	scaleExpInitial: 1,
-	scaleExpDecay: 0.4,
-	activeTileLerpRate: .1,
-	returningTileLerpRate: .01
+  hoverEngaged: engageHoverEle.checked,
 };
 
-const boardWrapper = document.getElementById('boardWrapper');
+const boardWrapper = document.getElementById("boardWrapper");
 const initTileLand = new TileLand(boardWrapper, options);
 
 function onRangeChange(ele, obj, property) {
-  ele.addEventListener('input', e => {
+  ele.addEventListener("input", (e) => {
     const indicator = e.target.nextElementSibling;
     const val = Number(e.target.value);
     obj[property] = val;
     indicator.innerText = val;
 
-		if (obj instanceof TileLand) {
-			obj.tileDislocate({x: obj.columns / 2, y: obj.rows / 2});
-		}
+    if (obj instanceof TileLand) {
+      obj.tileDislocate({ x: obj.columns / 2, y: obj.rows / 2 });
+    }
   });
 }
 
 // Hover Events
-onRangeChange(hoverRadiusEle, initTileLand, 'hoverRadius');
-onRangeChange(dislocateStartEle, initTileLand, 'pushoffExpInitial');
-onRangeChange(dislocateDecayEle, initTileLand, 'pushoffExpDecay');
-onRangeChange(tileSizeDecayEle, initTileLand, 'scaleExpDecay');
-onRangeChange(tilePushSpeedEle, initTileLand, 'activeTileLerpRate');
-onRangeChange(tileReturnSpeedEle, initTileLand, 'returningTileLerpRate');
+onRangeChange(hoverRadiusEle, initTileLand, "hoverRadius");
+onRangeChange(dislocateStartEle, initTileLand, "pushoffExpInitial");
+onRangeChange(dislocateDecayEle, initTileLand, "pushoffExpDecay");
+onRangeChange(tileSizeDecayEle, initTileLand, "scaleExpDecay");
 
-engageHoverEle.addEventListener('change', e => {
-	const checked = e.target.checked;
-	initTileLand.hoverEngaged = checked;
-	
-	if (!checked) {
-		initTileLand.resetBoard();
-	}
+engageHoverEle.addEventListener("change", (e) => {
+  const checked = e.target.checked;
+  initTileLand.hoverEngaged = checked;
+
+  if (!checked) {
+    initTileLand.resetBoard();
+  }
 });
 
 // reset settings
-const reset = document.getElementById('reset');
-reset.addEventListener('click', () => {
-	// reset inputs
-	engageHoverEle.checked = false;
-	hoverRadiusEle.value = 3.6;
-	dislocateStartEle.value = 0.1;
-	dislocateDecayEle.value = 0.6;
-	tileSizeDecayEle.value = 0.4;
+const reset = document.getElementById("reset");
+reset.addEventListener("click", () => {
+  // reset inputs
+  engageHoverEle.checked = HOVER_ENGAGED;
+  hoverRadiusEle.value = HOVER_RADIUS;
+  dislocateStartEle.value = PUSH_OFF_EXP_INITIAL;
+  dislocateDecayEle.value = PUSH_OFF_EXP_DECAY;
+  tileSizeDecayEle.value = SCALE_EXP_DECAY;
 
-	// reset tile board
-  initTileLand.hoverEngaged = false;
-	initTileLand.hoverRadius = 3.6;
-	initTileLand.pushoffExpInitial = 0.1;
-	initTileLand.pushoffExpDecay = 0.6;
-	initTileLand.scaleExpInitial = 1;
-	initTileLand.scaleExpDecay = 0.4;
-	initTileLand.resetBoard();
+  // reset tile board
+  initTileLand.resetBoard();
 });
 
 // Window resize
 if (initTileLand) {
-	const debouncedResetTileLand = debounce.call(initTileLand, initTileLand.resetBoard, 250);
+  const debouncedResetTileLand = debounce.call(
+    initTileLand,
+    initTileLand.resetBoard,
+    250
+  );
 
-	window.addEventListener('resize', () => {
-		debouncedResetTileLand();
-	});
+  window.addEventListener("resize", () => {
+    debouncedResetTileLand();
+  });
 }

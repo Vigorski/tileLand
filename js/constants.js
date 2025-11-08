@@ -1,5 +1,14 @@
-export const tileSize = {
-	s: 15,
-	md: 20,
-	lg: 25
-}
+export const TILE_SIZE = 25;
+export const HOVER_ENGAGED = false;
+export const HOVER_RADIUS = 4;
+export const SCALE_EXP_INITIAL = 1;
+export const SCALE_EXP_DECAY = 0.4;
+export const PUSH_OFF_EXP_INITIAL = 0.1;
+export const PUSH_OFF_EXP_DECAY = 0.6;
+export const COLOR_INACTIVE = [67, 62, 66];
+export const COLOR_FOCUS = [104, 37, 184];
+export const COLOR_INITIAL = 0.25;
+export const COLOR_DECAY = 0.6;
+export const ACTIVE_TILE_LERP_RATE = 0.1;
+export const RETURNING_TILE_LERP_RATE = 0.15;
+export const ASPECT_RATIO = 9 / 16;
