@@ -1,0 +1,25 @@
+{
+  "name": "tileland",
+  "version": "2.0.0",
+  "description": "Cascade Waves is an interactive tile-based animation project that creates wave-like effects on a grid of tiles. Users can trigger animations through clicks or hover interactions, with customizable settings for wave speed, hover radius, tile size, and more. The project is built using JavaScript, HTML, and CSS, and is designed to provide a visually engaging and responsive experience.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vigorski/tileLand.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Vigorski/tileLand/issues"
+  },
+  "homepage": "https://github.com/Vigorski/tileLand#readme",
+  "devDependencies": {
+    "vite": "^7.2.2"
+  }
+}
