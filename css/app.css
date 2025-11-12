@@ -27,8 +27,12 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
   overflow-x: hidden;
-  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+header {
+  margin: 1rem 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -384,24 +388,44 @@ select:disabled {
   text-transform: uppercase;
 }
 
-.btn-primary-gradient {
+.btn-gradient {
   color: #fff;
   background: linear-gradient(90deg, #4f207a 0%, #7f1ea4 100%);
   border: none;
   transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.btn-primary-gradient:hover {
+.btn-gradient:hover {
   background-color: var(--color-primary-hover);
 }
 
-.btn-primary-gradient:disabled {
+.btn-gradient:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+.btn-switch {
+  color: #7f1ea4;
+  background: #fff;
+  border: 1px solid #7f1ea4;
+}
+
+.btn-switch--active {
+  color: #fff;
+  background: #7f1ea4;
+  border: none;
+}
+
 .btn-block {
   width: 100%;
+}
+
+.btn-switch-group {
+  padding: 8px;
+  background-color: var(--color-background);
+  display: inline-flex;
+  gap: 8px;
+  border-radius: 8px;
 }
 
 /* ===============================
@@ -409,8 +433,8 @@ select:disabled {
 ================================== */
 /* RANGE INPUT */
 [type=range] {
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   background: transparent;
 }
@@ -435,6 +459,7 @@ select:disabled {
 /* Thumb (Webkit) */
 [type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   height: 18px;
   width: 18px;
   margin-top: -7px; /* Align thumb vertically with track */
