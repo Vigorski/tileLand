@@ -1,6 +1,6 @@
 import { exponentialDecay } from "./helpers.js";
 import {
-  TILE_SIZE,
+  TILE_SIZE_PIXELS,
   HOVER_ENGAGED,
   HOVER_RADIUS,
   SCALE_EXP_INITIAL,
@@ -14,12 +14,13 @@ import {
   ACTIVE_TILE_LERP_RATE,
   RETURNING_TILE_LERP_RATE,
   ASPECT_RATIO,
+  WAVE_INCREMENT,
 } from "./constants.js";
 
 export default class TileLandCanvas {
   constructor(container, options = {}) {
     const {
-      tilePixelSize = TILE_SIZE,
+      tilePixelSize = TILE_SIZE_PIXELS,
       hoverEngaged = HOVER_ENGAGED,
       hoverRadius = HOVER_RADIUS,
       scaleExpDecay = SCALE_EXP_DECAY,
@@ -29,11 +30,12 @@ export default class TileLandCanvas {
       colorFocus = COLOR_FOCUS,
     } = options;
 
+		this.animationFrameId = null;
     this.container = container;
     this.tilePixelSize = tilePixelSize;
     this.hoverEngaged = hoverEngaged;
     this.hoverRadius = hoverRadius;
-    this.waveIncrement = 0.5;
+    this.waveIncrement = WAVE_INCREMENT;
 
     this.activeTileLerpRate = ACTIVE_TILE_LERP_RATE;
     this.returningTileLerpRate = RETURNING_TILE_LERP_RATE;
@@ -50,8 +52,8 @@ export default class TileLandCanvas {
     this.aspectRatio = ASPECT_RATIO;
     this.columns = this.getColumns();
     this.rows = this.getRows();
-    this.radiusNear = this.columns / 2;
-    this.radiusFar = this.columns * 2;
+    this.boardXCenter = Math.floor(this.columns / 2);
+    this.boardYCenter = Math.floor(this.rows / 2);
 
     this.tileState = [];
     this.activeWaves = [];
@@ -224,6 +226,14 @@ export default class TileLandCanvas {
     }
   }
 
+	hoverUpdate() {
+		const center = {
+			x: this.boardXCenter,
+			y: this.boardYCenter
+		};
+		this.tileDislocate(center);
+	}
+
   resetBoard() {
     this.tileState = [];
     this.columns = this.getColumns();
@@ -239,6 +249,29 @@ export default class TileLandCanvas {
     this.generateTiles();
   }
 
+	returnTilesToDefault() {
+		for (let y = 0; y < this.columns; y++) {
+			for (let x = 0; x < this.columns; x++) {
+				const tile = this.tileState[y][x];
+				
+				tile.hovered = false;
+				tile.targetOffsetX = 0;
+				tile.targetOffsetY = 0;
+				tile.targetScale = 1;
+				tile.color = [...this.colorInactive];
+			}
+		}
+	}
+
+	destroy() {
+		if (this.animationFrameId) {
+			cancelAnimationFrame(this.animationFrameId);
+			this.animationFrameId = null;
+		}
+		this.canvas.replaceWith(this.canvas.cloneNode(true));
+		this.canvas.remove();
+	}
+
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -248,7 +281,7 @@ export default class TileLandCanvas {
     });
 
     this.activeWaves = this.activeWaves.filter(
-      (wave) => wave.radius < this.columns + this.radiusNear
+      (wave) => wave.radius < this.columns + this.boardXCenter
     );
 
     // Flatten tile grid into array
@@ -322,6 +355,6 @@ export default class TileLandCanvas {
       this.ctx.restore();
     });
 
-    requestAnimationFrame(() => this.draw());
+    this.animationFrameId = requestAnimationFrame(() => this.draw());
   }
 }

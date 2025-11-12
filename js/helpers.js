@@ -10,6 +10,7 @@ export function debounce (func, limit) {
 }
 
 export function exponentialDecay(initialValue, decay, time) {
+	// a(1-b)x -> wherein a is the original amount, b is the decay factor, and x is the amount of time that has passed.
 	return initialValue * Math.pow(1 - decay, time);
 }
 

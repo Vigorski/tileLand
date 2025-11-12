@@ -9,73 +9,14 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap" rel="stylesheet" />
 		<link rel="stylesheet" href="css/app.css" />
-		<script src="js/app.js" type="module"></script>
+		<script src="js/main.js" type="module"></script>
 	</head>
 	<body>
 		<div class="playground__wrapper">
 			<div class="container">
-				<section class="playground">
-					<aside class="controls">
-						<div class="controls__wrapper">
-							<fieldset>
-								<legend>Board settings</legend>
-								<div class="form__group">
-									<label for="boardColumns">Number of Columns</label>
-									<input type="number" value="20" min="5" max="40" id="boardColumns" />
-									<span class="form__field-error"></span>
-								</div>
-							</fieldset>
-							<fieldset>
-								<legend>Hover settings</legend>
-								<div class="form__field-checkbox">
-									<input type="checkbox" id="engageHover" />
-									<label for="engageHover">Allow hover</label>
-								</div>
-								<div class="form__field-range">
-									<label for="hoverRadius">Hover radius</label>
-									<input type="range" value="3.6" id="hoverRadius" name="hoverRadius" min="2" max="5" step="0.25" />
-									<span class="form__indicator">3.6</span>
-								</div>
-								<div class="form__field-range">
-									<label for="dislocateStart">Push start</label>
-									<input type="range" value="0.1" id="dislocateStart" name="dislocateRate" min="-1" max="2" step="0.05" />
-									<span class="form__indicator">0.1</span>
-								</div>
-								<div class="form__field-range">
-									<label for="dislocateDecay">Push decay</label>
-									<input type="range" value="0.6" id="dislocateDecay" name="dislocateRate" min="0" max="0.95" step="0.05" />
-									<span class="form__indicator">0.6</span>
-								</div>
-								<div class="form__field-range">
-									<label for="tileSizeStart">Size start</label>
-									<input type="range" value="1" id="tileSizeStart" name="dislocateRate" min="0.2" max="5" step="0.1" />
-									<span class="form__indicator">1</span>
-								</div>
-								<div class="form__field-range">
-									<label for="tileSizeDecay">Size decay</label>
-									<input type="range" value="0.4" id="tileSizeDecay" name="dislocateRate" min="-0.5" max="0.95" step="0.05" />
-									<span class="form__indicator">0.4</span>
-								</div>
-							</fieldset>
-							<fieldset>
-								<legend>Wave settings</legend>
-								<div class="form__field-range">
-									<label for="waveSpeed">Wave speed</label>
-									<input type="range" value="0.6" min="0.2" max="0.7" step="0.1" id="waveSpeed" />
-									<span class="form__indicator">0.6</span>
-								</div>
-								<div class="form__field-checkbox">
-									<input type="checkbox" value="3" id="tileWidth" />
-									<label for="tileWidth">Super wave?</label>
-								</div>
-							</fieldset>
-							<button class="btn btn-primary-gradient btn-block" type="button" id="reset">Reset settings</button>
-						</div>
-					</aside>
-					<main>
-						<div id="boardWrapper"></div>
-					</main>
-				</section>
+				<button id="loadSVG">SVG Version</button>
+				<button id="loadCanvas">Canvas Version</button>
+				<div id="app"></div>
 			</div>
 		</div>
 	</body>
