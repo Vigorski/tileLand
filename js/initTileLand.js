@@ -6,29 +6,61 @@ import {
 	SCALE_EXP_DECAY,
 	PUSH_OFF_EXP_DECAY,
 	PUSH_OFF_EXP_INITIAL,
-	BOARD_TYPE_CANVAS
+	BOARD_TYPE_CANVAS,
+	BOARD_TYPE_SVG
 } from './constants.js';
 import { debounce } from './helpers.js';
 
-function toggleHoverInputHandler(input, instance) {
+let controlsInitialized = false;
+const boardCache = {
+	[BOARD_TYPE_CANVAS]: null,
+	[BOARD_TYPE_SVG]: null
+};
+
+function toggleHoverInputHandler(input) {
 	input.addEventListener('change', e => {
+		if (!window.currentTileLand) return;
 		const checked = e.target.checked;
-		instance.hoverEngaged = checked;
-		if (!checked) instance.returnTilesToDefault();
+		window.currentTileLand.hoverEngaged = checked;
+		if (!checked) window.currentTileLand.returnTilesToDefault();
 	});
 }
 
-function rangeInputHandler(input, instance, property, hoverInputEle) {
+function rangeInputHandler(input, property, hoverInputEle) {
 	input.addEventListener('input', e => {
-		updateInputAndIndicator(e.target, instance, property);
-		toggleHover(true, instance, hoverInputEle);
+		if (!window.currentTileLand) return;
+		updateInputAndIndicator(e.target, property);
+		toggleHover(true, hoverInputEle);
 	});
 }
 
-function updateInputAndIndicator(input, instance, property, defaultValue) {
+function resetButtonHandler(button) {
+	button.addEventListener('click', () => {
+		if (!window.currentTileLand) return;
+		setControlsToDefault(
+			window.tileLandControls.controls,
+			window.tileLandControls.engageHoverEle
+		);
+		window.currentTileLand.resetBoard();
+	});
+}
+
+function resizeHandler() {
+	const debouncedResetTileLand = debounce.call(
+		window.currentTileLand,
+		window.currentTileLand?.resetBoard,
+		250
+	);
+	window.addEventListener('resize', () => {
+		if (!window.currentTileLand) return;
+		debouncedResetTileLand();
+	});
+}
+
+function updateInputAndIndicator(input, property, defaultValue) {
 	const indicator = input.nextElementSibling;
 	const val = defaultValue ?? Number(input.value);
-	instance[property] = val;
+	window.currentTileLand[property] = val;
 	indicator.innerText = val;
 
 	if (defaultValue) {
@@ -36,37 +68,25 @@ function updateInputAndIndicator(input, instance, property, defaultValue) {
 	}
 }
 
-function toggleHover(state, instance, hoverInputEle) {
+function toggleHover(state, hoverInputEle) {
 	hoverInputEle.checked = state;
-	instance.hoverEngaged = state;
-	instance.hoverUpdate();
+	window.currentTileLand.hoverEngaged = state;
+	window.currentTileLand.activateHoverInCenter();
 }
 
-function setControlsToDefault(controls, instance, hoverInputEle) {
+function setControlsToDefault(controls, hoverInputEle) {
 	controls.forEach(control => {
-		updateInputAndIndicator(control.ele, instance, control.property, control.defaultValue);
+		updateInputAndIndicator(
+			control.ele,
+			control.property,
+			control.defaultValue
+		);
 	});
 	hoverInputEle.checked = HOVER_ENGAGED;
 }
 
-function prepareNewBoard(type) {
-	if (window.currentTileLand) {
-		window.currentTileLand.destroy?.();
-		window.currentTileLand = null;
-	}
-
-	const TileLand = type === BOARD_TYPE_CANVAS ? TileLandCanvas : TileLandSVG;
-	const boardWrapper = document.getElementById('boardWrapper');
-
-	window.currentTileLand = new TileLand(boardWrapper, {
-		hoverEngaged: HOVER_ENGAGED
-	});
-
-	return window.currentTileLand;
-}
-
-export function initTileLand(type = BOARD_TYPE_CANVAS) {
-	const currentTileLand = prepareNewBoard(type);
+export function initControls() {
+	if (controlsInitialized) return;
 
 	// Controls
 	const engageHoverEle = document.getElementById('engageHover');
@@ -76,34 +96,70 @@ export function initTileLand(type = BOARD_TYPE_CANVAS) {
 	const tileSizeDecayEle = document.getElementById('tileSizeDecay');
 
 	const controls = [
-		{ele: hoverRadiusEle, property: 'hoverRadius', defaultValue: HOVER_RADIUS},
-		{ele: dislocateStartEle, property: 'pushoffExpInitial', defaultValue: PUSH_OFF_EXP_INITIAL},
-		{ele: dislocateDecayEle, property: 'pushoffExpDecay', defaultValue: PUSH_OFF_EXP_DECAY},
-		{ele: tileSizeDecayEle, property: 'scaleExpDecay', defaultValue: SCALE_EXP_DECAY},
+		{
+			ele: hoverRadiusEle,
+			property: 'hoverRadius',
+			defaultValue: HOVER_RADIUS
+		},
+		{
+			ele: dislocateStartEle,
+			property: 'pushoffExpInitial',
+			defaultValue: PUSH_OFF_EXP_INITIAL
+		},
+		{
+			ele: dislocateDecayEle,
+			property: 'pushoffExpDecay',
+			defaultValue: PUSH_OFF_EXP_DECAY
+		},
+		{
+			ele: tileSizeDecayEle,
+			property: 'scaleExpDecay',
+			defaultValue: SCALE_EXP_DECAY
+		}
 	];
-
-	setControlsToDefault(controls, currentTileLand, engageHoverEle);
 
 	// Event handlers
 	controls.forEach(control => {
-		rangeInputHandler(control.ele, currentTileLand, control.property, engageHoverEle);
+		rangeInputHandler(control.ele, control.property, engageHoverEle);
 	});
-	toggleHoverInputHandler(engageHoverEle, currentTileLand);
+	toggleHoverInputHandler(engageHoverEle);
 
 	// Reset settings
 	const reset = document.getElementById('reset');
-	reset.addEventListener('click', () => {
-		setControlsToDefault(controls, currentTileLand, engageHoverEle);
-		currentTileLand.resetBoard();
-	});
+	resetButtonHandler(reset);
 
 	// Resize
-	if (currentTileLand) {
-		const debouncedResetTileLand = debounce.call(
-			currentTileLand,
-			currentTileLand.resetBoard,
-			250
+	resizeHandler();
+
+	controlsInitialized = true;
+
+	window.tileLandControls = { controls, engageHoverEle };
+}
+
+export function switchBoardType(type = BOARD_TYPE_CANVAS) {
+	const otherType =
+		type === BOARD_TYPE_CANVAS ? BOARD_TYPE_SVG : BOARD_TYPE_CANVAS;
+
+	if (boardCache[otherType]) {
+		boardCache[otherType].pause();
+	}
+
+	if (!boardCache[type]) {
+		const boardWrapper = document.getElementById('boardWrapper');
+		const TileLand = type === BOARD_TYPE_CANVAS ? TileLandCanvas : TileLandSVG;
+		boardCache[type] = new TileLand(boardWrapper, {
+			hoverEngaged: HOVER_ENGAGED
+		});
+		window.currentTileLand = boardCache[type];
+	} else if (boardCache[type].isPaused) {
+		boardCache[type].resume();
+		window.currentTileLand = boardCache[type];
+	}
+
+	if (window.tileLandControls) {
+		setControlsToDefault(
+			window.tileLandControls.controls,
+			window.tileLandControls.engageHoverEle
 		);
-		window.addEventListener('resize', () => debouncedResetTileLand());
 	}
 }

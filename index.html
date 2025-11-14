@@ -1,40 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tile Land</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/app.css" />
-    <script src="js/main.js" type="module"></script>
-  </head>
-  <body>
-    <header>
-      <div class="container">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			http-equiv="X-UA-Compatible"
+			content="IE=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Tile Land</title>
+		<link
+			rel="preconnect"
+			href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
+			rel="stylesheet" />
+		<link
+			rel="stylesheet"
+			href="css/app.css" />
+		<script
+			src="js/main.js"
+			type="module"></script>
+	</head>
+	<body>
+		<header>
+			<div class="container">
 				<div class="header__wrapper">
 					<div>
 						<h1>Tile Land</h1>
 						<p>Performance showcase: Interactive tile-based animation</p>
 					</div>
-					<div class="btn-switch-group" id="btnSwitchGroup">
-						<button class="btn btn-switch btn-switch--active" type="button" id="loadCanvas">
+					<div
+						class="btn-switch-group"
+						id="btnSwitchGroup">
+						<button
+							class="btn btn-switch btn-switch--active"
+							type="button"
+							id="loadCanvas">
 							Canvas Version
 						</button>
-						<button class="btn btn-switch" type="button" id="loadSVG">
+						<button
+							class="btn btn-switch"
+							type="button"
+							id="loadSVG">
 							SVG Version
 						</button>
 					</div>
 				</div>
-      </div>
-    </header>
-    <div class="container">
-      <div id="app"></div>
-    </div>
-  </body>
+			</div>
+		</header>
+		<div class="container">
+			<section class="playground">
+				<header class="controls">
+					<div class="controls__wrapper">
+						<fieldset class="controls__wrapper">
+							<legend>Controls</legend>
+							<div class="form__field-group">
+								<div class="form__field-range">
+									<label for="hoverRadius">Hover radius</label>
+									<input
+										type="range"
+										id="hoverRadius"
+										min="2"
+										max="12"
+										step="0.25" />
+									<span class="form__indicator"></span>
+								</div>
+								<div class="form__field-range">
+									<label for="tileSizeDecay">Size decay</label>
+									<input
+										type="range"
+										id="tileSizeDecay"
+										min="-0.5"
+										max="0.95"
+										step="0.05" />
+									<span class="form__indicator"></span>
+								</div>
+							</div>
+							<div class="form__field-group">
+								<div class="form__field-range">
+									<label for="dislocateStart">Push force</label>
+									<input
+										type="range"
+										id="dislocateStart"
+										min="-1"
+										max="2"
+										step="0.05" />
+									<span class="form__indicator"></span>
+								</div>
+								<div class="form__field-range">
+									<label for="dislocateDecay">Push decay</label>
+									<input
+										type="range"
+										id="dislocateDecay"
+										min="0"
+										max="0.95"
+										step="0.05" />
+									<span class="form__indicator"></span>
+								</div>
+							</div>
+							<div class="form__field-group">
+								<div class="form__field-checkbox">
+									<input
+										type="checkbox"
+										id="engageHover" />
+									<label for="engageHover">Allow hover</label>
+								</div>
+							</div>
+						</fieldset>
+						<button
+							class="btn btn-gradient"
+							type="button"
+							id="reset">
+							Reset settings
+						</button>
+					</div>
+				</header>
+				<main>
+					<div id="boardWrapper"></div>
+				</main>
+			</section>
+		</div>
+	</body>
 </html>

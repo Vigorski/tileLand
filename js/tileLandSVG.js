@@ -41,6 +41,7 @@ export default class TileLand {
 		this.baseSVG = this.createBaseSVG();
 		this.allTiles = this.baseSVG.querySelectorAll('.cascade-waves__tile');
 		this.boardCenter = Math.floor(this.columns / 2);
+		this.isPaused = false;
 
 		// wave options
 		this.waveIncrement = WAVE_INCREMENT;
@@ -145,6 +146,20 @@ export default class TileLand {
 		});
 
 		return rect;
+	}
+
+	pause() {
+		if (this.baseSVG) {
+			this.baseSVG.style.display = 'none';
+		}
+		this.isPaused = true;
+	}
+	
+	resume() {
+		if (this.baseSVG) {
+			this.baseSVG.style.display = 'block';
+		}
+		this.isPaused = false;
 	}
 
 	destroyBoard() {
@@ -325,7 +340,7 @@ export default class TileLand {
 		}
 	}
 
-	hoverUpdate() {
+	activateHoverInCenter() {
 		const center = {
 			x: this.boardCenter,
 			y: this.boardCenter
