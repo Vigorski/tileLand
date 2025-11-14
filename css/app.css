@@ -242,6 +242,16 @@ select:disabled {
   opacity: 1;
 }
 
+.radio-check-container {
+  position: relative;
+  display: block;
+}
+
+.radio-check-container .message-error {
+  display: block;
+  margin: 0.5rem 1.75rem;
+}
+
 /* ===============================
    FORM COMPONENTS
 ================================== */
@@ -386,6 +396,8 @@ select:disabled {
   min-height: 3rem;
   border-radius: 0.25rem;
   text-transform: uppercase;
+	cursor: pointer;
+	transition: all 0.3s ease-in-out;
 }
 
 .btn-gradient {
@@ -407,13 +419,20 @@ select:disabled {
 .btn-switch {
   color: #7f1ea4;
   background: #fff;
-  border: 1px solid #7f1ea4;
+  border: 2px solid #7f1ea4;
+}
+
+.btn-switch:hover {
+  background-color: #f0f0f0;
 }
 
 .btn-switch--active {
   color: #fff;
   background: #7f1ea4;
-  border: none;
+}
+
+.btn-switch--active:hover {
+  background-color: #4f207a;
 }
 
 .btn-block {
@@ -426,6 +445,7 @@ select:disabled {
   display: inline-flex;
   gap: 8px;
   border-radius: 8px;
+	box-shadow: 0 0 30px #e2d4ff;
 }
 
 /* ===============================
@@ -552,9 +572,15 @@ select:disabled {
 	justify-content: center;
 }
 
+.header__wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
 .container {
   width: 100%;
-  max-width: 1360px;
+  max-width: 1600px;
   padding: 0 12px;
   margin: 0 auto;
 }
@@ -632,14 +658,4 @@ fieldset.controls__wrapper {
 @keyframes spin {
   0% { transform: rotateX(0); }
   100% { transform: rotateX(180deg); }
-}
-
-.radio-check-container {
-  position: relative;
-  display: block;
-}
-
-.radio-check-container .message-error {
-  display: block;
-  margin: 0.5rem 1.75rem;
 }
