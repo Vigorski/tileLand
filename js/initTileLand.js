@@ -172,5 +172,6 @@ export function switchBoardType(type = BOARD_TYPE_CANVAS) {
   }
 
 	boardCache[type].resetBoard();
+	document.body.setAttribute('data-board-type', type);
 	window.currentTileLand = boardCache[type];
 }
