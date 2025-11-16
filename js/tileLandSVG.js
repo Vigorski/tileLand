@@ -6,12 +6,12 @@ import {
   SCALE_EXP_DECAY,
   PUSH_OFF_EXP_DECAY,
   PUSH_OFF_EXP_INITIAL,
-  COLOR_INACTIVE,
+  COLOR_INACTIVE_SVG,
   COLOR_DECAY,
   COLOR_INITIAL,
-  COLOR_FOCUS,
+  COLOR_FOCUS_SVG,
   WAVE_INCREMENT,
-  DEFAULT_COLUMNS_SVG,
+  TILE_SIZE_PIXELS,
 } from "./constants.js";
 
 const requestAnimationFrame =
@@ -23,6 +23,7 @@ const requestAnimationFrame =
 export default class TileLand {
   constructor(container, options = {}) {
     const {
+			tilePixelSize = TILE_SIZE_PIXELS,
       tileWidth = 1,
       hoverEngaged = HOVER_ENGAGED,
       hoverRadius = HOVER_RADIUS,
@@ -33,14 +34,17 @@ export default class TileLand {
 
     this.svg = "http://www.w3.org/2000/svg";
     this.container = container;
-    this.columns = DEFAULT_COLUMNS_SVG;
+		this.tilePixelSize = tilePixelSize;
+    this.columns = this.getColumns();
+    this.rows = this.getRows();
     this.tileState = new Array();
     this.tileWidth = tileWidth ?? 1;
     this.tileOffset = this.tileWidth / 2;
     this.tileStrokeWidth = this.tileWidth / this.columns;
     this.baseSVG = this.createBaseSVG();
     this.allTiles = this.baseSVG.querySelectorAll(".cascade-waves__tile");
-    this.boardCenter = Math.floor(this.columns / 2);
+    this.boardXCenter = Math.floor(this.columns / 2);
+    this.boardYCenter = Math.floor(this.rows / 2);
     this.isPaused = false;
 
     // wave options
@@ -49,8 +53,8 @@ export default class TileLand {
     // hover options
     this.hoverEngaged = hoverEngaged;
     this.hoverRadius = hoverRadius;
-    this.colorGray = COLOR_INACTIVE;
-    this.colorThreshold = COLOR_FOCUS;
+    this.colorGray = COLOR_INACTIVE_SVG;
+    this.colorThreshold = COLOR_FOCUS_SVG;
     this.colorInitial = COLOR_INITIAL;
     this.colorDecay = COLOR_DECAY;
     this.pushoffExpInitial = pushoffExpInitial;
@@ -61,14 +65,25 @@ export default class TileLand {
     this.addHoverEvent();
   }
 
+	getColumns() {
+		const containerWidth = this.container.offsetWidth;
+		return Math.round(containerWidth / this.tilePixelSize);
+	}
+	
+	getRows() {
+		const containerHeight = this.container.offsetHeight;
+		return Math.round(containerHeight / this.tilePixelSize);
+	}
+
   // o = center, r = radius, a = opposite side, b = adjacent side, c = hypotenuse
   createBaseSVG() {
     // create baseSVG
     const baseSVG = document.createElementNS(this.svg, "svg");
     baseSVG.setAttribute("width", "100%");
+	 	baseSVG.setAttribute("height", "100%");
     baseSVG.setAttribute(
       "viewBox",
-      `-${this.tileOffset} -${this.tileOffset} ${this.columns} ${this.columns}`
+      `-${this.tileOffset} -${this.tileOffset} ${this.columns} ${this.rows}`
     );
     baseSVG.setAttribute("class", "cascade-waves");
 
@@ -82,7 +97,7 @@ export default class TileLand {
     tilesWrapper.setAttribute("class", "cascade-waves__tiles");
 
     // gennerate all tiles
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.columns; x++) {
         rootGrid.appendChild(this.createRootTile(x, y));
         tilesWrapper.appendChild(this.createTile(x, y));
@@ -171,6 +186,10 @@ export default class TileLand {
 
   resetBoard() {
     this.destroyBoard();
+		this.columns = this.getColumns();
+		this.rows = this.getRows();
+		this.boardXCenter = Math.floor(this.columns / 2);
+		this.boardYCenter = Math.floor(this.rows / 2);
     this.baseSVG = this.createBaseSVG();
     this.hoverEngaged = HOVER_ENGAGED;
     this.addHoverEvent();
@@ -182,7 +201,7 @@ export default class TileLand {
   }
 
   returnTilesToDefault() {
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.columns; x++) {
         const tile = this.tileState[y]?.[x];
         if (!tile) continue;
@@ -203,7 +222,7 @@ export default class TileLand {
       _this.loopThroughTiles(center, waveRadius);
 
       // if r grows half more than current columns, stop wave iteration
-      if (waveRadius > _this.columns + _this.boardCenter) return;
+      if (waveRadius > _this.columns + _this.boardXCenter) return;
 
       requestAnimationFrame(() => increment());
     };
@@ -261,9 +280,10 @@ export default class TileLand {
       const baseTop = Math.floor(baseSVGRect.top);
       // the hover event works with the actual pixels on screen instead of the viewBox of the svg we defined
       // so we must calculate the actual tile width here
-      const pixelTileSize = baseSVGRect.width / this.columns;
-      const relativeX = (e.clientX - baseLeft) / pixelTileSize;
-      const relativeY = (e.clientY - baseTop) / pixelTileSize;
+      const pixelTileSizeX = baseSVGRect.width / this.columns;
+      const pixelTileSizeY = baseSVGRect.height / this.rows;
+      const relativeX = (e.clientX - baseLeft) / pixelTileSizeX;
+      const relativeY = (e.clientY - baseTop) / pixelTileSizeY;
 
       const center = {
         x: relativeX - this.tileWidth / 2,
@@ -279,8 +299,8 @@ export default class TileLand {
 
     const o = { x: center.x, y: center.y };
 
-    for (let x = 0; x <= this.columns; x++) {
-      for (let y = 0; y <= this.columns; y++) {
+    for (let y = 0; y <= this.rows; y++) {
+      for (let x = 0; x <= this.columns; x++) {
         // check if tile exists, else skip to next tile
         const tile = this.tileState[y]?.[x];
         if (!tile) continue;
@@ -342,8 +362,8 @@ export default class TileLand {
 
   activateHoverInCenter() {
     const center = {
-      x: this.boardCenter,
-      y: this.boardCenter,
+      x: this.boardXCenter,
+      y: this.boardYCenter,
     };
     this.tileDislocate(center);
   }

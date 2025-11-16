@@ -7,13 +7,12 @@ import {
   SCALE_EXP_DECAY,
   PUSH_OFF_EXP_DECAY,
   PUSH_OFF_EXP_INITIAL,
-  COLOR_INACTIVE,
+  COLOR_INACTIVE_CANVAS,
   COLOR_DECAY,
   COLOR_INITIAL,
-  COLOR_FOCUS,
+  COLOR_FOCUS_CANVAS,
   ACTIVE_TILE_LERP_RATE,
   RETURNING_TILE_LERP_RATE,
-  ASPECT_RATIO,
   WAVE_INCREMENT,
 } from "./constants.js";
 
@@ -26,8 +25,8 @@ export default class TileLandCanvas {
       scaleExpDecay = SCALE_EXP_DECAY,
       pushoffExpInitial = PUSH_OFF_EXP_INITIAL,
       pushoffExpDecay = PUSH_OFF_EXP_DECAY,
-      colorInactive = COLOR_INACTIVE,
-      colorFocus = COLOR_FOCUS,
+      colorInactive = COLOR_INACTIVE_CANVAS,
+      colorFocus = COLOR_FOCUS_CANVAS,
     } = options;
 
     this.isPaused = false;
@@ -51,7 +50,6 @@ export default class TileLandCanvas {
     this.colorInitial = COLOR_INITIAL;
     this.colorDecay = COLOR_DECAY;
 
-    this.aspectRatio = ASPECT_RATIO;
     this.columns = this.getColumns();
     this.rows = this.getRows();
     this.boardXCenter = Math.floor(this.columns / 2);
@@ -75,7 +73,8 @@ export default class TileLandCanvas {
   }
 
   getRows() {
-    return Math.round(this.columns * this.aspectRatio);
+		const containerHeight = document.getElementById("boardWrapper").offsetHeight;
+    return Math.round(containerHeight / this.tilePixelSize);
   }
 
   createCanvas() {
@@ -95,7 +94,7 @@ export default class TileLandCanvas {
   }
 
   generateTiles() {
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       this.tileState[y] = [];
       for (let x = 0; x < this.columns; x++) {
         this.tileState[y][x] = {
@@ -139,7 +138,7 @@ export default class TileLandCanvas {
   }
 
   tileDislocate(o) {
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.columns; x++) {
         const tile = this.tileState[y][x];
         const dx = x - o.x;
@@ -169,7 +168,7 @@ export default class TileLandCanvas {
           tile.targetScale = scale;
           tile.color = [
             Math.round(this.colorInactive[0] + this.colorFocus[0] * colorRate),
-            Math.round(this.colorInactive[1] - this.colorFocus[1] * colorRate),
+            Math.round(this.colorInactive[1] + this.colorFocus[1] * colorRate),
             Math.round(this.colorInactive[2] + this.colorFocus[2] * colorRate),
           ];
         } else if (tile.hovered) {
@@ -243,7 +242,6 @@ export default class TileLandCanvas {
     this.canvas.width = this.columns * this.tilePixelSize;
     this.canvas.height = this.rows * this.tilePixelSize;
     this.hoverEngaged = HOVER_ENGAGED;
-    HOVER_ENGAGED && this.addHoverEvent();
     this.hoverRadius = HOVER_RADIUS;
     this.pushoffExpInitial = PUSH_OFF_EXP_INITIAL;
     this.pushoffExpDecay = PUSH_OFF_EXP_DECAY;
@@ -252,7 +250,7 @@ export default class TileLandCanvas {
   }
 
   returnTilesToDefault() {
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.columns; x++) {
         const tile = this.tileState[y][x];
 
@@ -300,7 +298,7 @@ export default class TileLandCanvas {
 
     // Flatten tile grid into array
     const allTiles = [];
-    for (let y = 0; y < this.columns; y++) {
+    for (let y = 0; y < this.rows; y++) {
       for (let x = 0; x < this.columns; x++) {
         allTiles.push(this.tileState[y][x]);
       }

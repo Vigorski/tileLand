@@ -7,7 +7,7 @@ import {
   PUSH_OFF_EXP_DECAY,
   PUSH_OFF_EXP_INITIAL,
   BOARD_TYPE_CANVAS,
-  BOARD_TYPE_SVG,
+  BOARD_TYPE_SVG
 } from "./constants.js";
 import { debounce } from "./helpers.js";
 
@@ -46,14 +46,13 @@ function resetButtonHandler(button) {
 }
 
 function resizeHandler() {
-  const debouncedResetTileLand = debounce.call(
-    window.currentTileLand,
-    window.currentTileLand.resetBoard,
-    250
-  );
-  window.addEventListener("resize", () => {
+	const debouncedCaller = debounce((tileLand) => {
+    tileLand.resetBoard();
+  }, 250);
+
+  window.addEventListener('resize', () => {
     if (!window.currentTileLand) return;
-    debouncedResetTileLand();
+    debouncedCaller(window.currentTileLand);
   });
 }
 
@@ -73,11 +72,11 @@ function controlsToggleHandlers() {
 
 function updateInputAndIndicator(input, property, defaultValue) {
   const indicator = input.nextElementSibling;
-  const val = defaultValue ?? Number(input.value);
+  const val = (typeof defaultValue !== 'undefined') ? defaultValue : Number(input.value);
   window.currentTileLand[property] = val;
   indicator.innerText = val;
 
-  if (defaultValue) {
+  if (typeof defaultValue !== 'undefined') {
     input.value = val;
   }
 }
@@ -145,8 +144,12 @@ export function initControls() {
   const reset = document.getElementById("reset");
   resetButtonHandler(reset);
 
-  controlsInitialized = true;
+	resizeHandler();
+	
+	setControlsToDefault(controls, engageHoverEle);
 
+  controlsInitialized = true;
+	
   window.tileLandControls = { controls, engageHoverEle };
 }
 
@@ -162,18 +165,12 @@ export function switchBoardType(type = BOARD_TYPE_CANVAS) {
     const boardWrapper = document.getElementById("boardWrapper");
     const TileLand = type === BOARD_TYPE_CANVAS ? TileLandCanvas : TileLandSVG;
     boardCache[type] = new TileLand(boardWrapper, {
-      hoverEngaged: HOVER_ENGAGED,
+      hoverEngaged: HOVER_ENGAGED
     });
-    window.currentTileLand = boardCache[type];
-
-    resizeHandler();
   } else if (boardCache[type].isPaused) {
     boardCache[type].resume();
-    window.currentTileLand = boardCache[type];
   }
 
-  setControlsToDefault(
-    window.tileLandControls.controls,
-    window.tileLandControls.engageHoverEle
-  );
+	boardCache[type].resetBoard();
+	window.currentTileLand = boardCache[type];
 }

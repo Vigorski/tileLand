@@ -9,8 +9,10 @@
   --color-error: #D53E2A;
   --color-success: #2ECACE;
   --color-background: #fff;
+	--color-background-dark: #292929;
+	--color-background-dark-2: #1c1c1c;
   --color-muted: #584c5c;
-  --color-text: #000;
+  --color-text: #fff;
 }
 
 *, *::before, *::after {
@@ -24,7 +26,7 @@ html, body {
 body {
   margin: 0;
   font: 400 16px "Raleway", sans-serif;
-  background-color: var(--color-background);
+  background-color: var(--color-background-dark-2);
   color: var(--color-text);
   overflow-x: hidden;
   text-size-adjust: 100%;
@@ -32,10 +34,10 @@ body {
 }
 
 header {
-  background-color: var(--color-background);
-  box-shadow: 0 0 30px #e2d4ff;
+  background-color: var(--color-background-dark);
   margin: 0 0 1.25rem;
   padding: 1.25rem 0 .75rem;
+	border-bottom: 4px solid rgb(13, 232, 131);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -409,22 +411,30 @@ select:disabled {
   cursor: not-allowed;
 }
 
-.btn-switch {
-  color: #7f1ea4;
-  background: #fff;
-  border: 2px solid #7f1ea4;
+.btn-switch-canvas,
+.btn-switch-svg {
+  color: var(--color-text);
+  background-color: var(--color-background-dark);
+	border: 2px solid #fff;
 }
 
-.btn-switch:hover {
-  background-color: #f0f0f0;
-}
-
-.btn-switch--active {
+.btn-switch-canvas.btn-switch--active {
   color: #fff;
-  background: #7f1ea4;
+  background-color: #0de883;
+	border: 2px solid #0de883;
 }
 
-.btn-switch--active:hover {
+.btn-switch-canvas.btn-switch--active:hover {
+  background-color: #0aae61;
+}
+
+.btn-switch-svg.btn-switch--active {
+  color: #fff;
+  background-color: #7f1ea4;
+	border: 2px solid #7f1ea4;
+}
+
+.btn-switch-svg.btn-switch--active:hover {
   background-color: #4f207a;
 }
 
@@ -587,7 +597,7 @@ select:disabled {
    COMPONENTS
 ================================== */
 #boardWrapper {
-  background-color: #303030;
+	height: calc(100vh - 220px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -609,9 +619,8 @@ select:disabled {
 
 .playground {
   position: relative;
-  background-color: var(--color-background);
+	background-color: var(--color-background-dark);
   padding: 1rem;
-  box-shadow: 0 0 30px #e2d4ff;
   overflow: hidden;
 }
 
