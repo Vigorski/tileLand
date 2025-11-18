@@ -52,6 +52,9 @@ export default class TileLandCanvas {
 
     this.columns = this.getColumns();
     this.rows = this.getRows();
+		this.flatTiles = [];
+		this.baseTiles = [];
+		this.pushedTiles = [];
     this.boardXCenter = Math.floor(this.columns / 2);
     this.boardYCenter = Math.floor(this.rows / 2);
 
@@ -63,6 +66,7 @@ export default class TileLandCanvas {
     };
     this.createCanvas();
     this.generateTiles();
+		this.flattenTiles();
     this.addHoverEvent();
     this.draw();
   }
@@ -114,6 +118,20 @@ export default class TileLandCanvas {
       }
     }
   }
+
+	flattenTiles() {
+		const total = this.columns * this.rows;
+    this.flatTiles = new Array(total);
+		this.baseTiles.length = 0;
+		this.pushedTiles.length = 0;
+
+    let index = 0;
+    for (let y = 0; y < this.rows; y++) {
+        for (let x = 0; x < this.columns; x++) {
+            this.flatTiles[index++] = this.tileState[y][x];
+        }
+    }
+	}
 
   setMouseCanvasCoordinates(e) {
     const rect = this.canvas.getBoundingClientRect();
@@ -247,6 +265,7 @@ export default class TileLandCanvas {
     this.pushoffExpDecay = PUSH_OFF_EXP_DECAY;
     this.scaleExpDecay = SCALE_EXP_DECAY;
     this.generateTiles();
+    this.flattenTiles();
   }
 
   returnTilesToDefault() {
@@ -284,10 +303,64 @@ export default class TileLandCanvas {
     this.canvas.remove();
   }
 
-  draw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	drawTile(tile) {
+		// Interpolation
+		const isReturning = tile.targetOffsetX === 0 && tile.targetOffsetY === 0;
+		const lerpRate = isReturning
+			? this.returningTileLerpRate
+			: this.activeTileLerpRate;
 
-    this.activeWaves.forEach((wave) => {
+		if (tile.waveActive) {
+			tile.waveTTL -= 1;
+
+			if (tile.waveTTL <= 0) {
+				tile.waveActive = false;
+				tile.targetScale = 1;
+				tile.color = [...this.colorInactive];
+			}
+		}
+
+		tile.currentOffsetX +=
+			(tile.targetOffsetX - tile.currentOffsetX) * lerpRate;
+		tile.currentOffsetY +=
+			(tile.targetOffsetY - tile.currentOffsetY) * lerpRate;
+		tile.currentScale += (tile.targetScale - tile.currentScale) * lerpRate;
+
+		const px = tile.x * this.tilePixelSize + tile.currentOffsetX;
+		const py = tile.y * this.tilePixelSize + tile.currentOffsetY;
+
+		this.ctx.save();
+		this.ctx.translate(
+			px + this.tilePixelSize / 2,
+			py + this.tilePixelSize / 2
+		);
+		this.ctx.scale(tile.currentScale, tile.currentScale);
+
+		// Fill
+		this.ctx.fillStyle = `rgb(${tile.color[0]}, ${tile.color[1]}, ${tile.color[2]})`;
+		this.ctx.fillRect(
+			-this.tilePixelSize / 2,
+			-this.tilePixelSize / 2,
+			this.tilePixelSize,
+			this.tilePixelSize
+		);
+
+		// Stroke
+		const [r, g, b] = tile.color;
+		this.ctx.strokeStyle = `rgb(${r - 40}, ${g - 40}, ${b - 40})`;
+		this.ctx.lineWidth = 1 / tile.currentScale;
+		this.ctx.strokeRect(
+			-this.tilePixelSize / 2,
+			-this.tilePixelSize / 2,
+			this.tilePixelSize,
+			this.tilePixelSize
+		);
+
+		this.ctx.restore();
+	};
+
+	drawWavesAction() {
+		this.activeWaves.forEach((wave) => {
       wave.radius += this.waveIncrement;
       this.loopThroughTiles(wave.origin, wave.radius);
     });
@@ -295,77 +368,33 @@ export default class TileLandCanvas {
     this.activeWaves = this.activeWaves.filter(
       (wave) => wave.radius < this.columns + this.boardXCenter
     );
+	}
 
-    // Flatten tile grid into array
-    const allTiles = [];
-    for (let y = 0; y < this.rows; y++) {
-      for (let x = 0; x < this.columns; x++) {
-        allTiles.push(this.tileState[y][x]);
-      }
-    }
+	drawHoverAction() {
+		this.baseTiles.length = 0;
+		this.pushedTiles.length = 0;
 
-    // Sort pushed tiles last in array so as to be drawn last (on top)
-    allTiles.sort((a, b) => {
-      const aPush = Math.abs(a.currentOffsetX) + Math.abs(a.currentOffsetY);
-      const bPush = Math.abs(b.currentOffsetX) + Math.abs(b.currentOffsetY);
-      return aPush - bPush;
-    });
+		for (let i = 0; i < this.flatTiles.length; i++) {
+			const tile = this.flatTiles[i];
+			
+			const pushAmount = tile.targetOffsetX + tile.targetOffsetY;
+	
+			if (pushAmount !== 0 || tile.waveActive) {
+					this.pushedTiles.push(tile);
+			} else {
+					this.baseTiles.push(tile);
+			}
+		}
+		
+		this.baseTiles.forEach((tile) => this.drawTile(tile));
+		this.pushedTiles.forEach((tile) => this.drawTile(tile));
+	}
 
-    allTiles.forEach((tile) => {
-      // Interpolation
-      const isReturning = tile.targetOffsetX === 0 && tile.targetOffsetY === 0;
-      const lerpRate = isReturning
-        ? this.returningTileLerpRate
-        : this.activeTileLerpRate;
+  draw() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      if (tile.waveActive) {
-        tile.waveTTL -= 1;
-
-        if (tile.waveTTL <= 0) {
-          tile.waveActive = false;
-          tile.targetScale = 1;
-          tile.color = [...this.colorInactive];
-        }
-      }
-
-      tile.currentOffsetX +=
-        (tile.targetOffsetX - tile.currentOffsetX) * lerpRate;
-      tile.currentOffsetY +=
-        (tile.targetOffsetY - tile.currentOffsetY) * lerpRate;
-      tile.currentScale += (tile.targetScale - tile.currentScale) * lerpRate;
-
-      const px = tile.x * this.tilePixelSize + tile.currentOffsetX;
-      const py = tile.y * this.tilePixelSize + tile.currentOffsetY;
-
-      this.ctx.save();
-      this.ctx.translate(
-        px + this.tilePixelSize / 2,
-        py + this.tilePixelSize / 2
-      );
-      this.ctx.scale(tile.currentScale, tile.currentScale);
-
-      // Fill
-      this.ctx.fillStyle = `rgb(${tile.color[0]}, ${tile.color[1]}, ${tile.color[2]})`;
-      this.ctx.fillRect(
-        -this.tilePixelSize / 2,
-        -this.tilePixelSize / 2,
-        this.tilePixelSize,
-        this.tilePixelSize
-      );
-
-      // Stroke
-      const [r, g, b] = tile.color;
-      this.ctx.strokeStyle = `rgb(${r - 40}, ${g - 40}, ${b - 40})`;
-      this.ctx.lineWidth = 1 / tile.currentScale;
-      this.ctx.strokeRect(
-        -this.tilePixelSize / 2,
-        -this.tilePixelSize / 2,
-        this.tilePixelSize,
-        this.tilePixelSize
-      );
-
-      this.ctx.restore();
-    });
+    this.drawWavesAction();
+    this.drawHoverAction();
 
     this.animationFrameId = requestAnimationFrame(() => this.draw());
   }
