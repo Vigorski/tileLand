@@ -47,7 +47,7 @@ function resetButtonHandler(button) {
 }
 
 function resizeHandler() {
-	const debouncedCaller = debounce((tileLand) => {
+	const debouncedCaller = debounce(tileLand => {
     tileLand.resetBoard();
   }, 250);
 

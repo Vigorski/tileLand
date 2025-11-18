@@ -279,7 +279,7 @@ export default class TileLand {
           // Must remove class with async because intersecting waves cause a glitch and class remains
           e.target.classList.remove("cascade-waves__tile--active");
         }, 0);
-      });
+      }, { once: true }); // remove listener after it's been triggered
     }
   }
 
