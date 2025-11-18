@@ -106,6 +106,17 @@ export default class TileLand {
     baseSVG.appendChild(rootGrid);
     this.container.appendChild(baseSVG);
 
+		// Attach the wave event to root grid
+    baseSVG.addEventListener("click", (e) => {
+      if (e.target.classList.contains("cascade-waves__root-tile")) {
+        const [x, y] = e.target.dataset.pos.split(",").map(Number);
+        const o = { x: x, y: y };
+
+        const increment = this.incrementWaveRadius(o);
+        requestAnimationFrame(() => increment());
+      }
+    });
+
     return baseSVG;
   }
 
@@ -148,15 +159,6 @@ export default class TileLand {
     );
     rect.setAttribute("class", "cascade-waves__root-tile");
     rect.dataset.pos = [x, y];
-
-    //set events for tile
-    rect.addEventListener("click", () => {
-      // initiate animation with requestAnimationFrame once here but
-      // requestAnimationFrame must be called again recursively within the called function
-      const o = { x: x, y: y };
-      const increment = this.incrementWaveRadius(o);
-      requestAnimationFrame(() => increment());
-    });
 
     return rect;
   }
