@@ -14,12 +14,6 @@ import {
   TILE_SIZE_PIXELS,
 } from "./constants.js";
 
-const requestAnimationFrame =
-  window.requestAnimationFrame ||
-  window.mozRequestAnimationFrame ||
-  window.webkitRequestAnimationFrame ||
-  window.msRequestAnimationFrame;
-
 export default class TileLand {
   constructor(container, options = {}) {
     const {
@@ -30,8 +24,10 @@ export default class TileLand {
       scaleExpDecay = SCALE_EXP_DECAY,
       pushoffExpInitial = PUSH_OFF_EXP_INITIAL,
       pushoffExpDecay = PUSH_OFF_EXP_DECAY,
+      monitor = null,
     } = options;
 
+    this.monitor = monitor;
     this.svg = "http://www.w3.org/2000/svg";
     this.container = container;
 		this.tilePixelSize = tilePixelSize;
@@ -46,6 +42,7 @@ export default class TileLand {
     this.boardXCenter = Math.floor(this.columns / 2);
     this.boardYCenter = Math.floor(this.rows / 2);
     this.isPaused = false;
+		this.animationFrameId = null;
 
     // wave options
     this.waveIncrement = WAVE_INCREMENT;
@@ -63,6 +60,7 @@ export default class TileLand {
     this.scaleExpDecay = scaleExpDecay;
 
     this.addHoverEvent();
+		this.monitorLoop();
   }
 
 	getColumns() {
@@ -163,21 +161,37 @@ export default class TileLand {
     return rect;
   }
 
+	monitorLoop() {
+    if (this.isPaused) return;
+    if (this.monitor) this.monitor.begin();
+    if (this.monitor) this.monitor.end();
+
+    this.animationFrameId = requestAnimationFrame(() => this.monitorLoop());
+  }
+
   pause() {
     if (this.baseSVG) {
       this.baseSVG.style.display = "none";
     }
     this.isPaused = true;
+
+		if (this.animationFrameId) {
+			cancelAnimationFrame(this.animationFrameId);
+			this.animationFrameId = null;
+		}
   }
 
   resume() {
     if (this.baseSVG) {
       this.baseSVG.style.display = "block";
     }
+
     this.isPaused = false;
+		this.monitorLoop();
   }
 
   destroyBoard() {
+		this.pause();
     if (this.baseSVG) {
       this.container.removeChild(this.baseSVG);
       this.baseSVG = null;
@@ -198,6 +212,8 @@ export default class TileLand {
     this.pushoffExpDecay = PUSH_OFF_EXP_DECAY;
     this.scaleExpDecay = SCALE_EXP_DECAY;
     this.scaleExpInitial = SCALE_EXP_INITIAL;
+		this.isPaused = false;
+    this.monitorLoop();
   }
 
   returnTilesToDefault() {

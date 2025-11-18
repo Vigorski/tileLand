@@ -17,3 +17,30 @@ export function exponentialDecay(initialValue, decay, time) {
 export function roundTwoDecimal(value) {
 	return Math.round((value + Number.EPSILON) * 100) / 100;
 }
+
+export class PerformanceMonitor {
+  constructor(onUpdate) {
+    this.startTime = 0;
+    this.prevTime = performance.now();
+    this.frames = 0;
+    this.onUpdate = onUpdate || (fps => console.log(`FPS: ${fps}`));
+  }
+
+  begin() {
+    this.startTime = performance.now();
+  }
+
+  end() {
+    const time = performance.now();
+    this.frames++;
+
+    if (time >= this.prevTime + 1000) {
+      const fps = Math.round((this.frames * 1000) / (time - this.prevTime));
+      
+      this.onUpdate(fps);
+
+      this.prevTime = time;
+      this.frames = 0;
+    }
+  }
+}

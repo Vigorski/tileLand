@@ -632,6 +632,31 @@ button:focus:not(:focus-visible) {
   fill: transparent;
 }
 
+.fps-counter {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  color: var(--color-white);
+	background-color: var(--color-dark-gray);
+	border: 2px solid var(--theme-primary);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+	height: 2.5rem;
+	width: 5.5rem;
+	font-size: 0.75rem;
+	line-height: 1;
+	z-index: 999;
+}
+
+.fps-counter span {
+  font-weight: 700;
+	font-size: 1rem;
+	line-height: 1;
+}
+
 @keyframes colors {
   0% { stroke: #584c5c; fill: #423f40; }
   50% { stroke: #cd91ff; fill: #8413af; }

@@ -27,8 +27,10 @@ export default class TileLandCanvas {
       pushoffExpDecay = PUSH_OFF_EXP_DECAY,
       colorInactive = COLOR_INACTIVE_CANVAS,
       colorFocus = COLOR_FOCUS_CANVAS,
+      monitor = null,
     } = options;
 
+    this.monitor = monitor;
     this.isPaused = false;
     this.animationFrameId = null;
     this.container = container;
@@ -109,6 +111,8 @@ export default class TileLandCanvas {
           targetOffsetY: 0,
           currentOffsetX: 0,
           currentOffsetY: 0,
+					baseCenterX: x * this.tilePixelSize + this.tilePixelSize / 2,
+					baseCenterY: y * this.tilePixelSize + this.tilePixelSize / 2,
           targetScale: 1,
           currentScale: 1,
           color: [...this.colorInactive],
@@ -320,43 +324,37 @@ export default class TileLandCanvas {
 			}
 		}
 
-		tile.currentOffsetX +=
-			(tile.targetOffsetX - tile.currentOffsetX) * lerpRate;
-		tile.currentOffsetY +=
-			(tile.targetOffsetY - tile.currentOffsetY) * lerpRate;
+		tile.currentOffsetX += (tile.targetOffsetX - tile.currentOffsetX) * lerpRate;
+		tile.currentOffsetY += (tile.targetOffsetY - tile.currentOffsetY) * lerpRate;
 		tile.currentScale += (tile.targetScale - tile.currentScale) * lerpRate;
 
-		const px = tile.x * this.tilePixelSize + tile.currentOffsetX;
-		const py = tile.y * this.tilePixelSize + tile.currentOffsetY;
+		// tile's center in screen coords
+		const cx = tile.baseCenterX + tile.currentOffsetX;
+		const cy = tile.baseCenterY + tile.currentOffsetY;
 
-		this.ctx.save();
-		this.ctx.translate(
-			px + this.tilePixelSize / 2,
-			py + this.tilePixelSize / 2
-		);
-		this.ctx.scale(tile.currentScale, tile.currentScale);
+		// scaled dimensions
+		const half = (this.tilePixelSize * tile.currentScale) / 2;
+
+		const left = cx - half;
+		const top = cy - half;
+		const size = half * 2;
 
 		// Fill
-		this.ctx.fillStyle = `rgb(${tile.color[0]}, ${tile.color[1]}, ${tile.color[2]})`;
-		this.ctx.fillRect(
-			-this.tilePixelSize / 2,
-			-this.tilePixelSize / 2,
-			this.tilePixelSize,
-			this.tilePixelSize
-		);
-
-		// Stroke
 		const [r, g, b] = tile.color;
-		this.ctx.strokeStyle = `rgb(${r - 40}, ${g - 40}, ${b - 40})`;
-		this.ctx.lineWidth = 1 / tile.currentScale;
-		this.ctx.strokeRect(
-			-this.tilePixelSize / 2,
-			-this.tilePixelSize / 2,
-			this.tilePixelSize,
-			this.tilePixelSize
-		);
+		this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+		this.ctx.fillRect(left, top, size, size);
 
-		this.ctx.restore();
+		// Border
+		const thickness = 1;
+		this.ctx.fillStyle = `rgb(${r - 40}, ${g - 40}, ${b - 40})`;
+		// top border
+		this.ctx.fillRect(left, top, size, thickness);
+		// bottom border
+		this.ctx.fillRect(left, top + size - thickness, size, thickness);
+		// left border
+		this.ctx.fillRect(left, top, thickness, size);
+		// right border
+		this.ctx.fillRect(left + size - thickness, top, thickness, size);
 	};
 
 	drawWavesAction() {
@@ -391,10 +389,14 @@ export default class TileLandCanvas {
 	}
 
   draw() {
+		if (this.monitor) this.monitor.begin();
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.drawWavesAction();
     this.drawHoverAction();
+
+		if (this.monitor) this.monitor.end();
 
     this.animationFrameId = requestAnimationFrame(() => this.draw());
   }

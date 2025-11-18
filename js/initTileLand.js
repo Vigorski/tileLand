@@ -9,7 +9,11 @@ import {
   BOARD_TYPE_CANVAS,
   BOARD_TYPE_SVG
 } from "./constants.js";
-import { debounce } from "./helpers.js";
+import { debounce, PerformanceMonitor } from "./helpers.js";
+
+const monitor = new PerformanceMonitor((fps) => {
+	document.getElementById('fpsCounter').textContent = fps;
+});
 
 let controlsInitialized = false;
 const boardCache = {
@@ -37,10 +41,7 @@ function rangeInputHandler(input, property, hoverInputEle) {
 function resetButtonHandler(button) {
   button.addEventListener("click", () => {
     if (!window.currentTileLand) return;
-    setControlsToDefault(
-      window.tileLandControls.controls,
-      window.tileLandControls.engageHoverEle
-    );
+    setControlsToDefault();
     window.currentTileLand.resetBoard();
   });
 }
@@ -87,7 +88,12 @@ function toggleHover(state, hoverInputEle) {
   window.currentTileLand.activateHoverInCenter();
 }
 
-function setControlsToDefault(controls, hoverInputEle) {
+function setControlsToDefault() {
+  const controls = window.tileLandControls?.controls;
+  const engageHoverEle = window.tileLandControls?.engageHoverEle;
+
+	if (!controls || !engageHoverEle) return;
+
   controls.forEach((control) => {
     updateInputAndIndicator(
       control.ele,
@@ -95,7 +101,7 @@ function setControlsToDefault(controls, hoverInputEle) {
       control.defaultValue
     );
   });
-  hoverInputEle.checked = HOVER_ENGAGED;
+  engageHoverEle.checked = HOVER_ENGAGED;
 }
 
 export function initControls() {
@@ -146,11 +152,11 @@ export function initControls() {
 
 	resizeHandler();
 	
-	setControlsToDefault(controls, engageHoverEle);
-
   controlsInitialized = true;
 	
   window.tileLandControls = { controls, engageHoverEle };
+
+	setControlsToDefault();
 }
 
 export function switchBoardType(type = BOARD_TYPE_CANVAS) {
@@ -164,14 +170,18 @@ export function switchBoardType(type = BOARD_TYPE_CANVAS) {
   if (!boardCache[type]) {
     const boardWrapper = document.getElementById("boardWrapper");
     const TileLand = type === BOARD_TYPE_CANVAS ? TileLandCanvas : TileLandSVG;
+
     boardCache[type] = new TileLand(boardWrapper, {
-      hoverEngaged: HOVER_ENGAGED
+      hoverEngaged: HOVER_ENGAGED,
+			monitor
     });
   } else if (boardCache[type].isPaused) {
     boardCache[type].resume();
   }
 
 	boardCache[type].resetBoard();
+	setControlsToDefault();
+	
 	document.body.setAttribute('data-board-type', type);
 	window.currentTileLand = boardCache[type];
 }
