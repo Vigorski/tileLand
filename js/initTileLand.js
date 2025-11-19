@@ -54,7 +54,7 @@ function toggleHoverInputHandler(input, _, valueOverride) {
 
 	if (!checked) boardState.currentBoard.returnTilesToDefault();
 
-	if (typeof valueOverride === 'undefined' && checked) {
+	if (typeof valueOverride !== 'undefined') {
 		boardState.currentBoard.activateHoverInCenter();
 	}
 }
@@ -166,10 +166,10 @@ export function initControls() {
 			control.handler(e.target, control.property);
 			
 			if (control.property !== 'hoverEngaged') {
-				if (!engageHoverEle.checked) {
+				// if (!engageHoverEle.checked) {
 					engageHoverEle.checked = true;
 					toggleHoverInputHandler(engageHoverEle, null, true);
-				}
+				// }
 			}
 		});
   });
