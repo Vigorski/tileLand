@@ -46,6 +46,7 @@ export default class TileLand {
 
     // wave options
     this.waveIncrement = WAVE_INCREMENT;
+		this.activeWaves = [];
 
     // hover options
     this.hoverEngaged = hoverEngaged;
@@ -60,7 +61,7 @@ export default class TileLand {
     this.scaleExpDecay = scaleExpDecay;
 
     this.addHoverEvent();
-		this.monitorLoop();
+		this.loop();
   }
 
 	getColumns() {
@@ -112,8 +113,7 @@ export default class TileLand {
         const [x, y] = e.target.dataset.pos.split(",").map(Number);
         const o = { x: x, y: y };
 
-        const increment = this.incrementWaveRadius(o);
-        requestAnimationFrame(() => increment());
+        this.incrementWaveRadius(o);
       }
     });
 
@@ -163,12 +163,15 @@ export default class TileLand {
     return rect;
   }
 
-	monitorLoop() {
+	loop() {
     if (this.isPaused) return;
     if (this.monitor) this.monitor.begin();
+
+		this.drawWavesAction();
+
     if (this.monitor) this.monitor.end();
 
-    this.animationFrameId = requestAnimationFrame(() => this.monitorLoop());
+    this.animationFrameId = requestAnimationFrame(() => this.loop());
   }
 
   pause() {
@@ -189,7 +192,7 @@ export default class TileLand {
     }
 
     this.isPaused = false;
-		this.monitorLoop();
+		this.loop();
   }
 
   destroyBoard() {
@@ -215,7 +218,7 @@ export default class TileLand {
     this.scaleExpDecay = SCALE_EXP_DECAY;
     this.scaleExpInitial = SCALE_EXP_INITIAL;
 		this.isPaused = false;
-    this.monitorLoop();
+    this.loop();
   }
 
   returnTilesToDefault() {
@@ -232,19 +235,25 @@ export default class TileLand {
   }
 
   incrementWaveRadius(o) {
-    const _this = this;
-    let waveRadius = 0;
-
-    return function increment(center = o) {
-      waveRadius += _this.waveIncrement;
-      _this.loopThroughTiles(center, waveRadius);
-
-      // if r grows half more than current columns, stop wave iteration
-      if (waveRadius > _this.columns + _this.boardXCenter) return;
-
-      requestAnimationFrame(() => increment());
-    };
+    this.activeWaves.push({
+			origin: o,
+			radius: 0
+		});
   }
+
+	drawWavesAction() {
+    if (this.activeWaves.length === 0) return;
+
+    this.activeWaves.forEach((wave) => {
+        wave.radius += this.waveIncrement;
+        this.loopThroughTiles(wave.origin, wave.radius);
+    });
+
+    const maxRadius = this.columns + this.boardXCenter;
+    this.activeWaves = this.activeWaves.filter(
+        (wave) => wave.radius < maxRadius
+    );
+	}
 
   loopThroughTiles(o, r) {
     //////////////////////////////////////
