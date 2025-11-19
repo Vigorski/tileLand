@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tile Land</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/tileLand/assets/index-BKGWAccm.js"></script>
+    <link rel="stylesheet" crossorigin href="/tileLand/assets/index-S58o4tf8.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header__wrapper">
+          <div>
+            <h1>Tile Land</h1>
+            <p>Performance showcase: Interactive tile-based animation</p>
+          </div>
+          <div class="btn-switch-group" id="btnSwitchGroup">
+            <button
+              class="btn btn-switch-canvas btn-switch--active"
+              type="button"
+              id="loadCanvas"
+            >
+              Canvas Version
+            </button>
+            <button class="btn btn-switch-svg" type="button" id="loadSVG">
+              SVG Version
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="container">
+      <section class="playground">
+				<div class="fps-counter">FPS:&nbsp;<span id="fpsCounter">0</span></div>
+        <button id="controlsOpen" class="btn btn-controls-open">|||</button>
+        <aside class="controls controls--hidden">
+          <button id="controlsClose" class="btn-controls-close"></button>
+          <div class="controls__wrapper">
+            <fieldset>
+              <legend>Controls</legend>
+              <div class="form__field-checkbox">
+                <input type="checkbox" id="engageHover" />
+                <label for="engageHover">Allow hover</label>
+              </div>
+              <div class="form__field-range">
+                <label for="hoverRadius">Hover radius</label>
+                <input
+                  type="range"
+                  id="hoverRadius"
+                  min="2"
+                  max="12"
+                  step="0.25"
+                />
+                <span class="form__indicator"></span>
+              </div>
+              <div class="form__field-range">
+                <label for="tileSizeDecay">Size decay</label>
+                <input
+                  type="range"
+                  id="tileSizeDecay"
+                  min="-0.5"
+                  max="0.95"
+                  step="0.05"
+                />
+                <span class="form__indicator"></span>
+              </div>
+              <div class="form__field-range">
+                <label for="dislocateStart">Push force</label>
+                <input
+                  type="range"
+                  id="dislocateStart"
+                  min="-1"
+                  max="2"
+                  step="0.05"
+                />
+                <span class="form__indicator"></span>
+              </div>
+              <div class="form__field-range">
+                <label for="dislocateDecay">Push decay</label>
+                <input
+                  type="range"
+                  id="dislocateDecay"
+                  min="0"
+                  max="0.95"
+                  step="0.05"
+                />
+                <span class="form__indicator"></span>
+              </div>
+            </fieldset>
+            <button class="btn btn-primary" type="button" id="reset">
+              Reset settings
+            </button>
+          </div>
+        </aside>
+        <main>
+          <div id="boardWrapper"></div>
+        </main>
+      </section>
+    </div>
+  </body>
+</html>
