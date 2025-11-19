@@ -15,49 +15,70 @@ const monitor = new PerformanceMonitor((fps) => {
 	document.getElementById('fpsCounter').textContent = fps;
 });
 
-let controlsInitialized = false;
-const boardCache = {
-  [BOARD_TYPE_CANVAS]: null,
-  [BOARD_TYPE_SVG]: null,
+const boardState = {
+  boardCache: {
+		[BOARD_TYPE_CANVAS]: null,
+		[BOARD_TYPE_SVG]: null,
+	},
+	currentBoard: null,
+	boardControls: null,
+	controlsInitialized: false,
+	// boardControls: {
+	// 	[BOARD_TYPE_CANVAS]: {
+	// 		rangeControls: null,
+	// 		engageHoverEle: null,
+	// 	},
+	// 	[BOARD_TYPE_SVG]: {
+	// 		rangeControls: null,
+	// 		engageHoverEle: null,
+	// 	},
+	// }
 };
 
-function toggleHoverInputHandler(input) {
-  input.addEventListener("change", (e) => {
-    if (!window.currentTileLand) return;
-    const checked = e.target.checked;
-    window.currentTileLand.hoverEngaged = checked;
-    if (!checked) window.currentTileLand.returnTilesToDefault();
-  });
+function toggleHoverInputHandler(input, _, defaultValue) {
+	const hasDefaultValue = typeof defaultValue !== 'undefined';
+	const checked = hasDefaultValue ? defaultValue : input.checked;
+	if (!checked) boardState.currentBoard.returnTilesToDefault();
+
+	toggleHover(input, checked, hasDefaultValue);
 }
 
-function rangeInputHandler(input, property, hoverInputEle) {
-  input.addEventListener("input", (e) => {
-    if (!window.currentTileLand) return;
-    updateInputAndIndicator(e.target, property);
-    toggleHover(true, hoverInputEle);
-  });
+function toggleHover(input, state, inCenter) {
+  boardState.currentBoard.hoverEngaged = state;
+
+  if (inCenter) {
+		input.checked = state;
+		boardState.currentBoard.activateHoverInCenter();
+	}
 }
 
-function resetButtonHandler(button) {
+function rangeInputHandler(input, property, defaultValue) {
+  const indicator = input.nextElementSibling;
+	const hasDefaultValue = typeof defaultValue !== 'undefined';
+  const val = hasDefaultValue ? defaultValue : Number(input.value);
+	if (hasDefaultValue) input.value = val;
+  boardState.currentBoard[property] = val;
+  indicator.innerText = val;
+}
+
+function setResetButtonHandler() {
+	const button = document.getElementById("reset");
+
   button.addEventListener("click", () => {
-    if (!window.currentTileLand) return;
+    boardState.currentBoard.resetBoard();
     setControlsToDefault();
-    window.currentTileLand.resetBoard();
   });
 }
 
-function resizeHandler() {
-	const debouncedCaller = debounce(tileLand => {
-    tileLand.resetBoard();
+function setResizeHandler() {
+	const debouncedCaller = debounce(() => {
+    boardState.currentBoard.resetBoard();
   }, 250);
 
-  window.addEventListener('resize', () => {
-    if (!window.currentTileLand) return;
-    debouncedCaller(window.currentTileLand);
-  });
+  window.addEventListener('resize', debouncedCaller);
 }
 
-function controlsToggleHandlers() {
+function setToggleControlsHandlers() {
   const controlsEle = document.querySelector(".controls");
   const controlsOpenEle = document.getElementById("controlsOpen");
   const controlsCloseEle = document.getElementById("controlsClose");
@@ -71,41 +92,16 @@ function controlsToggleHandlers() {
   });
 }
 
-function updateInputAndIndicator(input, property, defaultValue) {
-  const indicator = input.nextElementSibling;
-  const val = (typeof defaultValue !== 'undefined') ? defaultValue : Number(input.value);
-  window.currentTileLand[property] = val;
-  indicator.innerText = val;
-
-  if (typeof defaultValue !== 'undefined') {
-    input.value = val;
-  }
-}
-
-function toggleHover(state, hoverInputEle) {
-  hoverInputEle.checked = state;
-  window.currentTileLand.hoverEngaged = state;
-  window.currentTileLand.activateHoverInCenter();
-}
-
 function setControlsToDefault() {
-  const controls = window.tileLandControls?.controls;
-  const engageHoverEle = window.tileLandControls?.engageHoverEle;
+	if (!boardState.currentBoard) return;
 
-	if (!controls || !engageHoverEle) return;
-
-  controls.forEach((control) => {
-    updateInputAndIndicator(
-      control.ele,
-      control.property,
-      control.defaultValue
-    );
+  boardState.boardControls.forEach((control) => {
+    control.handler(control.ele, control.property, control.defaultValue);
   });
-  engageHoverEle.checked = HOVER_ENGAGED;
 }
 
 export function initControls() {
-  if (controlsInitialized) return;
+  if (boardState.controlsInitialized) return;
 
   // Controls
   const engageHoverEle = document.getElementById("engageHover");
@@ -114,74 +110,93 @@ export function initControls() {
   const dislocateDecayEle = document.getElementById("dislocateDecay");
   const tileSizeDecayEle = document.getElementById("tileSizeDecay");
 
-  const controls = [
+  boardState.boardControls = [
     {
+			ele: engageHoverEle,
+			property: "engageHover",
+			defaultValue: HOVER_ENGAGED,
+			currentValue: null,
+			handler: toggleHoverInputHandler,
+			event: "change",
+		},
+		{
       ele: hoverRadiusEle,
       property: "hoverRadius",
       defaultValue: HOVER_RADIUS,
+			currentValue: null,
+			handler: rangeInputHandler,
+			event: "input",
     },
     {
       ele: dislocateStartEle,
       property: "pushoffExpInitial",
       defaultValue: PUSH_OFF_EXP_INITIAL,
+			currentValue: null,
+			handler: rangeInputHandler,
+			event: "input",
     },
     {
       ele: dislocateDecayEle,
       property: "pushoffExpDecay",
       defaultValue: PUSH_OFF_EXP_DECAY,
+			currentValue: null,
+			handler: rangeInputHandler,
+			event: "input",
     },
     {
       ele: tileSizeDecayEle,
       property: "scaleExpDecay",
       defaultValue: SCALE_EXP_DECAY,
-    },
+			currentValue: null,
+			handler: rangeInputHandler,
+			event: "input",
+    }
   ];
 
-  // Event handlers
-  controls.forEach((control) => {
-    rangeInputHandler(control.ele, control.property, engageHoverEle);
+  // Control event handlers
+	boardState.boardControls.forEach((control) => {
+		control.ele.addEventListener(control.event, e => {
+			control.handler(e.target, control.property);
+			if (control.property !== 'engageHover') toggleHover(engageHoverEle, true, true);
+		});
   });
-  toggleHoverInputHandler(engageHoverEle);
-
-  // Controls toggle handlers
-  controlsToggleHandlers();
-
-  // Reset settings
-  const reset = document.getElementById("reset");
-  resetButtonHandler(reset);
-
-	resizeHandler();
 	
-  controlsInitialized = true;
+  // Toggle controls handlers
+  setToggleControlsHandlers();
 	
-  window.tileLandControls = { controls, engageHoverEle };
-
-	setControlsToDefault();
+  // Reset button handler
+  setResetButtonHandler();
+	
+	// Resize handler
+	setResizeHandler();
+	
+  setControlsToDefault();
+	
+  boardState.controlsInitialized = true;
 }
 
 export function switchBoardType(type = BOARD_TYPE_CANVAS) {
-  const otherType =
-    type === BOARD_TYPE_CANVAS ? BOARD_TYPE_SVG : BOARD_TYPE_CANVAS;
+  const otherType = type === BOARD_TYPE_CANVAS ? BOARD_TYPE_SVG : BOARD_TYPE_CANVAS;
 
-  if (boardCache[otherType]) {
-    boardCache[otherType].pause();
+  if (boardState.boardCache[otherType]) {
+    boardState.boardCache[otherType].pause();
   }
 
-  if (!boardCache[type]) {
+  if (!boardState.boardCache[type]) {
     const boardWrapper = document.getElementById("boardWrapper");
     const TileLand = type === BOARD_TYPE_CANVAS ? TileLandCanvas : TileLandSVG;
 
-    boardCache[type] = new TileLand(boardWrapper, {
+    boardState.boardCache[type] = new TileLand(boardWrapper, {
       hoverEngaged: HOVER_ENGAGED,
 			monitor
     });
-  } else if (boardCache[type].isPaused) {
-    boardCache[type].resume();
+  } else if (boardState.boardCache[type].isPaused) {
+    boardState.boardCache[type].resume();
   }
 
-	boardCache[type].resetBoard();
+	boardState.boardCache[type].resetBoard();
 	setControlsToDefault();
 	
 	document.body.setAttribute('data-board-type', type);
-	window.currentTileLand = boardCache[type];
+	boardState.currentBoard = boardState.boardCache[type];
 }
