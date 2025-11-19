@@ -12,7 +12,6 @@ import {
   COLOR_FOCUS_SVG,
   WAVE_INCREMENT,
   TILE_SIZE_PIXELS,
-  BOARD_TYPE_SVG,
 } from "./constants.js";
 
 export default class TileLand {
@@ -30,7 +29,6 @@ export default class TileLand {
 
     this.monitor = monitor;
     this.svg = "http://www.w3.org/2000/svg";
-		this.boardType = BOARD_TYPE_SVG;
     this.container = container;
 		this.tilePixelSize = tilePixelSize;
     this.columns = this.getColumns();

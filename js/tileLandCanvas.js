@@ -14,7 +14,6 @@ import {
   ACTIVE_TILE_LERP_RATE,
   RETURNING_TILE_LERP_RATE,
   WAVE_INCREMENT,
-  BOARD_TYPE_CANVAS,
 } from "./constants.js";
 
 export default class TileLandCanvas {
@@ -31,7 +30,6 @@ export default class TileLandCanvas {
       monitor = null,
     } = options;
 
-    this.boardType = BOARD_TYPE_CANVAS;
     this.monitor = monitor;
     this.isPaused = false;
     this.animationFrameId = null;

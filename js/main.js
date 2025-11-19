@@ -6,8 +6,8 @@ const loadSVGBoardButton = document.getElementById("loadSVG");
 const loadCanvasBoardButton = document.getElementById("loadCanvas");
 
 async function init() {
-	switchBoardType(BOARD_TYPE_CANVAS);
 	initControls();
+	switchBoardType(BOARD_TYPE_CANVAS);
 }
 
 function toggleButtons(button) {
