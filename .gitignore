@@ -1,5 +1,5 @@
 .vscode/
 /node_modules
-/scss
+/dist
 .env*
 !.env.example
