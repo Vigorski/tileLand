@@ -1,5 +1,7 @@
 # TileLand
 
+[![Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://vigorski.github.io/tileLand/)
+
 TileLand is an interactive performance showcase that compares **HTML5 Canvas** vs **SVG** rendering for high-volume DOM manipulation. It visualizes physics-based tile animations (hover effects and wave propagation) on a dense interactive grid.
 
 ### Features
