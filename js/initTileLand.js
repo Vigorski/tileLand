@@ -49,13 +49,14 @@ function updateConfig(property, value) {
 function toggleHoverInputHandler(input, _, valueOverride) {
 	const hasValueOverride = typeof valueOverride !== 'undefined';
 	const checked = hasValueOverride ? valueOverride : input.checked;
-	
+
 	updateConfig('hoverEngaged', checked);
 
 	if (!checked) boardState.currentBoard.returnTilesToDefault();
 
-	if (typeof valueOverride !== 'undefined') {
-		boardState.currentBoard.activateHoverInCenter();
+	if (hasValueOverride) {
+		input.checked = checked;
+		checked && boardState.currentBoard.activateHoverInCenter();
 	}
 }
 
@@ -96,14 +97,7 @@ function syncControlsToConfig(boardType) {
 	const config = boardState.configCache[boardType];
 
 	boardState.boardControls.forEach(control => {
-		const val = config[control.property];
-		
-		if (control.handler === toggleHoverInputHandler) {
-			control.ele.checked = val;
-			control.handler(control.ele, null, val); 
-		} else {
-			control.handler(control.ele, control.property, val);
-		}
+		control.handler(control.ele, control.property, config[control.property]); 
 	});
 }
 
@@ -166,10 +160,7 @@ export function initControls() {
 			control.handler(e.target, control.property);
 			
 			if (control.property !== 'hoverEngaged') {
-				// if (!engageHoverEle.checked) {
-					engageHoverEle.checked = true;
-					toggleHoverInputHandler(engageHoverEle, null, true);
-				// }
+				toggleHoverInputHandler(engageHoverEle, null, true);
 			}
 		});
   });
@@ -188,7 +179,6 @@ export function switchBoardType(type = BOARD_TYPE_CANVAS) {
     boardState.boardCache[otherType].pause();
   }
 
-	// Update global active type
   boardState.currentBoardType = type;
 
 	// Initialize new board if needed
@@ -206,7 +196,6 @@ export function switchBoardType(type = BOARD_TYPE_CANVAS) {
   }
 
 	boardState.currentBoard = boardState.boardCache[type];
-	boardState.currentBoard.resetBoard();
 	syncControlsToConfig(type);
 	
 	document.body.setAttribute('data-board-type', type);
