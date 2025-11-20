@@ -146,17 +146,26 @@ export default class TileLandCanvas {
     this.mouseCoordinates.mouseY = mouseY;
   }
 
-  addHoverEvent() {
-    this.canvas.addEventListener("mousemove", (e) => {
-      this.setMouseCanvasCoordinates(e);
+	triggerHover() {
+		if (this.hoverEngaged) {
+			this.tileDislocate({
+				x: this.mouseCoordinates.mouseX - this.tileOffset,
+				y: this.mouseCoordinates.mouseY - this.tileOffset,
+			});
+		}
+	}
 
-      if (this.hoverEngaged) {
-        this.tileDislocate({
-          x: this.mouseCoordinates.mouseX - this.tileOffset,
-          y: this.mouseCoordinates.mouseY - this.tileOffset,
-        });
-      }
+  addHoverEvent() {
+    this.canvas.addEventListener("mousemove", e => {
+      this.setMouseCanvasCoordinates(e);
+      this.triggerHover();
     });
+
+		this.canvas.addEventListener("touchmove", e => {
+      e.preventDefault();
+      this.setMouseCanvasCoordinates(e.touches[0]); 
+      this.triggerHover();
+    }, { passive: false });
   }
 
   tileDislocate(o) {

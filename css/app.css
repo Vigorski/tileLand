@@ -56,16 +56,6 @@ header {
 	border-bottom: 4px solid var(--theme-primary);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  :root {
-    scroll-behavior: smooth;
-  }
-}
-
-[hidden] {
-  display: none !important;
-}
-
 /* ===============================
    TYPOGRAPHY
 ================================== */
@@ -89,13 +79,6 @@ p {
   color: var(--color-white);
 }
 
-@media (max-width: 991.98px) {
-  p {
-    font-size: 0.875rem;
-    line-height: 1.625rem;
-  }
-}
-
 /* ===============================
    STRUCTURAL ELEMENTS
 ================================== */
@@ -116,10 +99,6 @@ legend {
   font-weight: 600;
 }
 
-@media (min-width: 1200px) {
-  legend { font-size: 1.5rem; }
-}
-
 legend + * {
   clear: left;
 }
@@ -137,11 +116,7 @@ label {
   touch-action: manipulation;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  label {
-    transition: none;
-  }
-}
+
 
 /* ===============================
    INPUTS
@@ -189,12 +164,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   -webkit-text-fill-color: var(--color-white);
   box-shadow: 0 0 0px 1000px var(--color-error) inset;
   transition: background-color 5000s ease-in-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  input:-webkit-autofill {
-    transition: none;
-  }
 }
 
 button {
@@ -300,12 +269,6 @@ button:focus:not(:focus-visible) {
 
 .form__field-checkbox label::before {
   z-index: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .form__field-checkbox label::before {
-    transition: none;
-  }
 }
 
 .form__field-checkbox input[type=checkbox] {
@@ -563,7 +526,6 @@ button:focus:not(:focus-visible) {
 	justify-content: space-between;
 }
 
-
 .container {
   width: 100%;
   max-width: 1600px;
@@ -622,12 +584,6 @@ button:focus:not(:focus-visible) {
   animation: colors 0.5s ease-in-out, beat 0.5s ease-in-out;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cascade-waves__tile--active {
-    transition: none;
-  }
-}
-
 .cascade-waves__root-grid {
   fill: transparent;
 }
@@ -679,4 +635,83 @@ button:focus:not(:focus-visible) {
 @keyframes spin {
   0% { transform: rotateX(0); }
   100% { transform: rotateX(180deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	input:-webkit-autofill {
+		transition: none;
+	}
+
+	label {
+    transition: none;
+  }
+
+	.cascade-waves__tile--active {
+		transition: none;
+	}
+
+	.form__field-checkbox label::before {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (min-width: 1200px) {
+  legend { font-size: 1.5rem; }
+}
+
+@media (max-width: 900px) {
+	h1 {
+		font-size: 1.5rem;
+	}
+
+  p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+	header {
+		margin: 0 0 .75rem;
+  	padding: 1rem 0 .25rem;
+	}
+
+	.header__wrapper {
+		flex-direction: column;
+		margin-bottom: 1rem;
+	}
+
+	.btn {
+		padding: 0.25rem .5rem;
+	}
+
+	.btn-switch-group {
+		width: 100%;
+	}
+
+	.btn-switch-group .btn {
+		flex: 1;
+	}
+}
+
+@media (max-width: 400px) {
+	h1 {
+		font-size: 1.25rem;
+	}
+
+	.header__title {
+		align-self: flex-start;
+	}
+
+	.header__title p {
+		display: none;
+	}
+
+	#boardWrapper {
+		height: calc(100vh - 170px);
+	}
 }
