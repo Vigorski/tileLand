@@ -298,27 +298,33 @@ export default class TileLand {
   // Hover effect
   ////////////////////////////////////////////
 
+	triggerHover(e) {
+		if (!this.hoverEngaged) return;
+
+		const baseSVGRect = this.baseSVG.getBoundingClientRect();
+		const baseLeft = Math.floor(baseSVGRect.left);
+		const baseTop = Math.floor(baseSVGRect.top);
+		// the hover event works with the actual pixels on screen instead of the viewBox of the svg we defined
+		// so we must calculate the actual tile width here
+		const pixelTileSizeX = baseSVGRect.width / this.columns;
+		const pixelTileSizeY = baseSVGRect.height / this.rows;
+		const relativeX = (e.clientX - baseLeft) / pixelTileSizeX;
+		const relativeY = (e.clientY - baseTop) / pixelTileSizeY;
+
+		const center = {
+			x: relativeX - this.tileWidth / 2,
+			y: relativeY - this.tileWidth / 2,
+		};
+
+		this.tileDislocate(center);
+	}
+
   addHoverEvent() {
-    this.baseSVG.addEventListener("mousemove", (e) => {
-      if (!this.hoverEngaged) return;
-
-      const baseSVGRect = this.baseSVG.getBoundingClientRect();
-      const baseLeft = Math.floor(baseSVGRect.left);
-      const baseTop = Math.floor(baseSVGRect.top);
-      // the hover event works with the actual pixels on screen instead of the viewBox of the svg we defined
-      // so we must calculate the actual tile width here
-      const pixelTileSizeX = baseSVGRect.width / this.columns;
-      const pixelTileSizeY = baseSVGRect.height / this.rows;
-      const relativeX = (e.clientX - baseLeft) / pixelTileSizeX;
-      const relativeY = (e.clientY - baseTop) / pixelTileSizeY;
-
-      const center = {
-        x: relativeX - this.tileWidth / 2,
-        y: relativeY - this.tileWidth / 2,
-      };
-
-      this.tileDislocate(center);
-    });
+    this.baseSVG.addEventListener("mousemove", this.triggerHover.bind(this));
+		this.baseSVG.addEventListener("touchmove", e => {
+      e.preventDefault();
+			this.triggerHover(e.touches[0]);
+    }, { passive: false });
   }
 
   tileDislocate(center) {

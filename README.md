@@ -1,12 +1,16 @@
-# Cascade Waves
+# TileLand
 
-Cascade Waves is an interactive tile-based animation project that creates wave-like effects on a grid of tiles. Users can trigger animations through clicks or hover interactions, with customizable settings for wave speed, hover radius, tile size, and more. The project is built using JavaScript, HTML, and CSS, and is designed to provide a visually engaging and responsive experience.
+TileLand is an interactive performance showcase that compares **HTML5 Canvas** vs **SVG** rendering for high-volume DOM manipulation. It visualizes physics-based tile animations (hover effects and wave propagation) on a dense interactive grid.
 
-## Getting Started
+### Features
+- **Dual Rendering Engines**: Raster (Canvas) and Vector (SVG) modes.
+- **Interactive Physics**: hover, touchmove and click events complimented by customizable parameters via real-time UI controls.
+- **Performance Monitoring**: FPS monitoring.
 
-1. Clone the repository.
-2. Start a local server and open `index.html` in your browser.
-3. Use the control panel to customize the board and animation settings.
+### How to Run
+1. `npm install`
+2. `npm run dev`
 
-## License
-This project is licensed under the MIT License.
+### Publishing (GitHub Pages)
+1. `npm run build`
+3. `npm run deploy`
